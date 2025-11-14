@@ -35,29 +35,44 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // TODO: Query notifications from database
-    // For now, return mock structure
-    const notifications: AdminNotification[] = [];
+    // Query notifications from database
+    let query = supabase
+      .from('admin_notifications')
+      .select('*', { count: 'exact' });
 
     // Apply filters
-    let filtered = notifications;
     if (status) {
-      filtered = filtered.filter(n => n.status === status);
+      query = query.eq('status', status);
     }
     if (type) {
-      filtered = filtered.filter(n => n.type === type);
+      query = query.eq('type', type);
     }
     if (stream) {
-      filtered = filtered.filter(n => n.target.streams.includes(stream as any));
+      query = query.contains('target_streams', [stream]);
     }
 
-    // Apply pagination
-    const paginated = filtered.slice(offset, offset + limit);
+    // Apply pagination and ordering
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const { data: dbNotifications, error, count } = await query;
+
+    if (error) {
+      console.error('Error querying notifications:', error);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch notifications' },
+        { status: 500 }
+      );
+    }
+
+    // Transform database records to AdminNotification format
+    const notifications = (dbNotifications || []).map(dbToAdminNotification);
 
     return NextResponse.json({
       success: true,
-      notifications: paginated,
-      total: filtered.length,
+      notifications,
+      total: count || 0,
       limit,
       offset
     });
@@ -97,42 +112,113 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Set metadata
-    notification.createdAt = new Date();
-    notification.updatedAt = new Date();
-    notification.status = 'draft';
+    // Prepare database record
+    const dbRecord = {
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      target_streams: notification.target.streams,
+      target_segments: notification.target.userSegments,
+      target_states: notification.target.states || null,
+      target_cities: notification.target.cities || null,
+      target_categories: notification.target.categories || null,
+      target_rank_min: notification.target.rankRange?.min || null,
+      target_rank_max: notification.target.rankRange?.max || null,
+      delivery_type: notification.schedule.deliveryType,
+      scheduled_date: notification.schedule.scheduleDate || null,
+      scheduled_time: notification.schedule.scheduleTime || null,
+      timezone: notification.schedule.timezone,
+      recurring_frequency: notification.schedule.recurring?.frequency || null,
+      recurring_end_date: notification.schedule.recurring?.endDate || null,
+      recurring_days_of_week: notification.schedule.recurring?.daysOfWeek || null,
+      expiry_date: notification.schedule.expiryDate || null,
+      priority: notification.display.priority,
+      show_in_app: notification.display.showInApp,
+      show_push: notification.display.showPush,
+      show_email: notification.display.showEmail,
+      show_desktop: notification.display.showDesktop,
+      persistent: notification.display.persistent,
+      require_action: notification.display.requireAction,
+      auto_close_seconds: notification.display.autoClose || null,
+      icon: notification.display.icon || null,
+      color: notification.display.color || null,
+      image_url: notification.display.image || null,
+      primary_action_text: notification.actions?.primary?.text || null,
+      primary_action_url: notification.actions?.primary?.url || null,
+      primary_action_type: notification.actions?.primary?.type || null,
+      secondary_action_text: notification.actions?.secondary?.text || null,
+      secondary_action_url: notification.actions?.secondary?.url || null,
+      secondary_action_type: notification.actions?.secondary?.type || null,
+      template_id: notification.template || null,
+      template_variables: notification.variables || {},
+      status: 'draft',
+      created_by: authResult.userId!
+    };
 
-    // TODO: Save to database
-    // await db.collection('notifications').doc(notification.id).set(notification);
+    // Save to database
+    const { data: savedNotification, error: saveError } = await supabase
+      .from('admin_notifications')
+      .insert(dbRecord)
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('Error saving notification:', saveError);
+      return NextResponse.json(
+        { error: 'Failed to save notification', details: saveError.message },
+        { status: 500 }
+      );
+    }
+
+    // Convert back to AdminNotification format
+    let resultNotification = dbToAdminNotification(savedNotification);
 
     // If delivery type is immediate, send now
     if (notification.schedule.deliveryType === 'immediate') {
       const result = await notificationService.sendNotification(notification);
 
-      notification.status = 'sent';
-      notification.stats = {
+      // Update status and stats
+      const { error: updateError } = await supabase
+        .from('admin_notifications')
+        .update({
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          actual_delivered: result.delivered,
+          total_viewed: 0,
+          total_clicked: 0,
+          total_dismissed: 0
+        })
+        .eq('id', savedNotification.id);
+
+      if (updateError) {
+        console.error('Error updating notification status:', updateError);
+      }
+
+      resultNotification.status = 'sent';
+      resultNotification.stats = {
         delivered: result.delivered,
         viewed: 0,
         clicked: 0,
         dismissed: 0
       };
-
-      // TODO: Update in database
-      // await db.collection('notifications').doc(notification.id).update({ status: 'sent', stats });
     }
     // If scheduled, set up scheduling
     else if (notification.schedule.deliveryType === 'scheduled') {
       const scheduled = await notificationService.scheduleNotification(notification);
 
       if (scheduled) {
-        notification.status = 'scheduled';
-        // TODO: Update in database
+        await supabase
+          .from('admin_notifications')
+          .update({ status: 'scheduled' })
+          .eq('id', savedNotification.id);
+
+        resultNotification.status = 'scheduled';
       }
     }
 
     return NextResponse.json({
       success: true,
-      notification
+      notification: resultNotification
     });
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -199,4 +285,76 @@ async function authenticateAdmin(request: NextRequest): Promise<{
       status: 500
     };
   }
+}
+
+/**
+ * Convert database record to AdminNotification format
+ */
+function dbToAdminNotification(dbRecord: any): AdminNotification {
+  return {
+    id: dbRecord.id,
+    title: dbRecord.title,
+    message: dbRecord.message,
+    type: dbRecord.type,
+    target: {
+      streams: dbRecord.target_streams || [],
+      userSegments: dbRecord.target_segments || [],
+      states: dbRecord.target_states || undefined,
+      cities: dbRecord.target_cities || undefined,
+      categories: dbRecord.target_categories || undefined,
+      rankRange: (dbRecord.target_rank_min || dbRecord.target_rank_max) ? {
+        min: dbRecord.target_rank_min,
+        max: dbRecord.target_rank_max
+      } : undefined
+    },
+    schedule: {
+      deliveryType: dbRecord.delivery_type,
+      scheduleDate: dbRecord.scheduled_date ? new Date(dbRecord.scheduled_date) : undefined,
+      scheduleTime: dbRecord.scheduled_time || undefined,
+      timezone: dbRecord.timezone || 'Asia/Kolkata',
+      recurring: dbRecord.recurring_frequency ? {
+        frequency: dbRecord.recurring_frequency,
+        endDate: dbRecord.recurring_end_date ? new Date(dbRecord.recurring_end_date) : undefined,
+        daysOfWeek: dbRecord.recurring_days_of_week || undefined
+      } : undefined,
+      expiryDate: dbRecord.expiry_date ? new Date(dbRecord.expiry_date) : undefined
+    },
+    display: {
+      priority: dbRecord.priority,
+      showInApp: dbRecord.show_in_app,
+      showPush: dbRecord.show_push,
+      showEmail: dbRecord.show_email,
+      showDesktop: dbRecord.show_desktop,
+      persistent: dbRecord.persistent,
+      requireAction: dbRecord.require_action,
+      autoClose: dbRecord.auto_close_seconds || undefined,
+      icon: dbRecord.icon || undefined,
+      color: dbRecord.color || undefined,
+      image: dbRecord.image_url || undefined
+    },
+    actions: {
+      primary: (dbRecord.primary_action_text || dbRecord.primary_action_url) ? {
+        text: dbRecord.primary_action_text,
+        url: dbRecord.primary_action_url,
+        type: dbRecord.primary_action_type
+      } : undefined,
+      secondary: (dbRecord.secondary_action_text || dbRecord.secondary_action_url) ? {
+        text: dbRecord.secondary_action_text,
+        url: dbRecord.secondary_action_url,
+        type: dbRecord.secondary_action_type
+      } : undefined
+    },
+    createdBy: dbRecord.created_by,
+    createdAt: new Date(dbRecord.created_at),
+    updatedAt: new Date(dbRecord.updated_at),
+    status: dbRecord.status,
+    stats: {
+      delivered: dbRecord.actual_delivered || 0,
+      viewed: dbRecord.total_viewed || 0,
+      clicked: dbRecord.total_clicked || 0,
+      dismissed: dbRecord.total_dismissed || 0
+    },
+    template: dbRecord.template_id || undefined,
+    variables: dbRecord.template_variables || undefined
+  };
 }

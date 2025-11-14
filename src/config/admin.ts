@@ -1,16 +1,27 @@
 /**
  * Admin Configuration for NeetLogIQ
- * 
- * This file defines who has admin access to the system.
- * Only these specific Google accounts can access admin features.
+ *
+ * ⚠️ IMPORTANT: This file contains REFERENCE admin emails only!
+ *
+ * Actual admin status is determined by the database (user_profiles.role).
+ * These emails are for:
+ * 1. Legacy compatibility (being phased out)
+ * 2. Permission role definitions
+ * 3. Display names for UI
+ *
+ * DO NOT rely on this for authentication - use lib/admin-auth.ts instead!
  */
 
-// List of admin email addresses (only these can access admin features)
+// ⚠️ DEPRECATED: Admin status now comes from database (user_profiles.role)
+// These emails are for reference and legacy compatibility only
 export const ADMIN_EMAILS = [
   'kashyap0071232000@gmail.com',   // Super Admin
   'neetlogiq@gmail.com',           // Super Admin
   'kashyap2k007@gmail.com',        // Super Admin
 ];
+
+// NOTE: If you need to add/remove admins, update the database:
+// UPDATE user_profiles SET role = 'super_admin' WHERE user_id = '...';
 
 // Admin roles and permissions
 export const ADMIN_ROLES = {
