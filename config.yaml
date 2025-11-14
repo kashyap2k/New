@@ -3,22 +3,28 @@
 
 # Database Configuration
 database:
-  # SQLite (Development)
-  sqlite_path: "data/sqlite"
-  master_data_db: "master_data.db"
-  counselling_data_db: "counselling_data_partitioned.db"
-  aiq_counselling_db: "AIQ_counselling_data.db"
-  kea_counselling_db: "KEA_counselling_data.db"
-  linked_data_db: "linked_data.db"
-  seat_data_db: "seat_data.db"
-  
+  # ============ ACTIVE: PostgreSQL (Recommended for Production) ============
+  use_postgresql: true  # Switch between SQLite (false) and PostgreSQL (true)
+
+  # PostgreSQL databases (LOCAL)
+  postgresql_urls:
+    seat_data: "postgresql://kashyapanand@localhost:5432/seat_data"
+    master_data: "postgresql://kashyapanand@localhost:5432/master_data"
+    counselling_data: "postgresql://kashyapanand@localhost:5432/counselling_data_partitioned"
+
   # Connection pool size (should match thread count for optimal performance)
   max_connections: 16  # Match num_processes for best performance
-  
-  # PostgreSQL (Local Development)
-  local_postgresql_url: "postgresql://kashyapanand@localhost:5432/neetlogiq"
-  
-  # PostgreSQL (Production - Neon)
+
+  # ============ LEGACY: SQLite (Development Only) ============
+  # sqlite_path: "data/sqlite"
+  # master_data_db: "master_data.db"
+  # counselling_data_db: "counselling_data_partitioned.db"
+  # aiq_counselling_db: "AIQ_counselling_data.db"
+  # kea_counselling_db: "KEA_counselling_data.db"
+  # linked_data_db: "linked_data.db"
+  # seat_data_db: "seat_data.db"
+
+  # PostgreSQL (Production - Neon Cloud - Optional)
   neon_url: "postgresql://neondb_owner:npg_EZFqn57Jjgml@ep-little-frog-a8v5n24y-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require"
   # Example: "postgresql://user:pass@ep-cool-darkness-123456.us-east-2.aws.neon.tech/neetlogiq"
 
@@ -43,7 +49,7 @@ matching:
   # Smart Hybrid Matching Configuration
   use_smart_hybrid: true           # Enable smart hybrid matching (fast path + AI fallback)
   hybrid_threshold: 70.0            # Score threshold for accepting fast match (70% = more lenient, 85% = stricter)
-  
+
   # PASS 2 Alias Matching Configuration
   enable_pass2_alias_matching: false  # Set to false to run only PASS 1 (disable alias matching in PASS 2)
 
@@ -129,7 +135,7 @@ features:
   # NEW 2025 ADVANCED FEATURES
   enable_soft_tfidf: true            # Soft TF-IDF: typo-tolerant matching with n-grams (2-5% accuracy boost)
   enable_xai: true                   # Explainable AI: Generate human-readable explanations for matching decisions
-  log_xai_explanations: true        # Log XAI explanations to console (set to true for debugging)
+  log_xai_explanations: false        # Log XAI explanations to console (set to true for debugging - WARNING: floods output!)
   enable_ensemble_voting: true       # Ensemble matcher: weighted voting across fuzzy+phonetic+TF-IDF (5-8% accuracy boost)
   enable_explainable_ai: true        # Explainable AI: human-readable match explanations with component breakdown
   enable_uncertainty_quantification: true  # Uncertainty quantification: confidence intervals and agreement metrics
@@ -191,15 +197,15 @@ validation:
   # For example, "RAJASTHAN DENTAL COLLEGE AND HOSPITAL" was being classified as generic
   # because "RAJASTHAN" (a state name) was the only non-generic term.
   # When disabled, all colleges are treated as specific names with lenient matching rules
-  enable_generic_name_detection: false  # Set to false to disable generic name detection
+  enable_generic_name_detection: true  # CRITICAL FIX: Must be true to detect generic names like "GOVERNMENT MEDICAL COLLEGE"
   
   # Address Validation Configuration
   address_validation:
     enabled: true                      # Enable address validation gate
     require_for_generic_names: true    # Require address validation for generic college names
     require_for_single_candidate: true  # Require address validation when narrowed to single candidate
-    min_address_similarity_generic: 0.4   # 40% minimum address overlap for generic names
-    min_address_similarity_specific: 0.2  # 20% minimum address overlap for specific names
+    min_address_similarity_generic: 0.75   # FIXED: 75% minimum address overlap for generic names (was too lenient at 40%)
+    min_address_similarity_specific: 0.3  # 30% minimum address overlap for specific names
     combined_score_threshold: 0.85       # 85% combined confidence required
     address_weight_exact: 0.3            # 30% weight for exact matches
     address_weight_primary: 0.3         # 30% weight for primary name matches
@@ -241,6 +247,9 @@ tfidf:
 
 # Parallel Processing Configuration
 parallel:
+  # Enable/disable parallel processing
+  enable_parallel: true
+
   # Number of threads for parallel processing (uses ThreadPoolExecutor)
   # FIXED: Changed from ProcessPoolExecutor to ThreadPoolExecutor
   # Result: 40min → ~5min for 57K records (8x faster!)
@@ -253,7 +262,7 @@ parallel:
   # Recommended: 1000-2000 for most datasets
   # OPTIMIZED: Reduced from 2000 to 1000 for better thread utilization
   batch_size: 1000
-  
+
   # Memory limit per process (MB)
   memory_limit: 512
 
@@ -397,23 +406,23 @@ state_normalization:
 # Logging Configuration
 logging:
   # Console output verbosity control
-  console_level: "WARNING"  # WARNING (minimal), INFO (moderate), DEBUG (verbose)
-  file_level: "INFO"        # Log level for file output
+  console_level: "DEBUG"  # WARNING (minimal), INFO (moderate), DEBUG (verbose)
+  file_level: "DEBUG"        # Log level for file output
 
   # Verbosity level for performance monitoring and progress display
   # 0 = quiet (only errors), 1 = normal (progress bars only), 2 = verbose (detailed logs), 3 = debug (all logs)
-  verbosity_level: 1
+  verbosity_level: 3
 
   # Progress bar settings
   show_progress_bars: true   # Show tqdm progress bars during batch processing
   progress_bar_style: "auto" # auto, simple, detailed
 
   # Performance monitoring
-  show_slow_operation_warnings: false  # Show warnings for operations taking >1 second (only if verbosity_level >= 2)
+  show_slow_operation_warnings: true  # Show warnings for operations taking >1 second (only if verbosity_level >= 2)
 
-  # Detailed matching diagnostic messages
-  verbose_matching: false   # Show detailed rejection reasons for low-confidence matches
-  verbose_overlap: false    # Show token overlap analysis for rejected matches
+  # Detailed matching diagnostic messages (set to false for clean progress bars)
+  verbose_matching: false  # Show detailed rejection reasons (false = clean progress bars, true = detailed logs)
+  verbose_overlap: false   # Show token overlap analysis for rejected matches
 
   # Legacy settings (kept for compatibility)
   level: "INFO"
