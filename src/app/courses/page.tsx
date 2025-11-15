@@ -1,6 +1,8 @@
 'use client';
 
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, GraduationCap, Search, Sparkles, ArrowRight } from 'lucide-react';

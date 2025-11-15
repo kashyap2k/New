@@ -10,6 +10,7 @@ export const metadata = {
 };
 
 // Admin page uses cookies for auth, must be dynamic
+export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
   // Check authentication and admin privileges
