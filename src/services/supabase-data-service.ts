@@ -2,10 +2,13 @@
  * Supabase Data Service
  * Central service for all database operations using Supabase
  * Replaces DuckDB/Parquet with dynamic PostgreSQL queries
+ * Enhanced with ID resolution and relationship services
  */
 
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
+import { resolveId } from './id-resolver';
+import { getRelationshipGraph } from './relationship-service';
 
 // Type aliases for better readability
 type College = Database['public']['Tables']['colleges']['Row'];
@@ -152,24 +155,42 @@ export class SupabaseDataService {
 
   /**
    * Get college with related data (courses, cutoffs, stats)
+   * Enhanced with ID resolution and relationship graph
    */
-  async getCollegeDetails(collegeId: string, userId?: string) {
+  async getCollegeDetails(collegeId: string, userId?: string, options?: {
+    includeGraph?: boolean;
+    graphDepth?: number;
+  }) {
+    // Step 1: Smart ID resolution - handles both UUIDs and names
+    const resolution = await resolveId(collegeId, {
+      type: 'college',
+      fuzzyThreshold: 0.7,
+      useCache: true,
+    });
+
+    // If not found, return null
+    if (!resolution.id) {
+      return null;
+    }
+
+    const resolvedId = resolution.id;
+
     // Get college basic info
-    const college = await this.getCollege(collegeId);
+    const college = await this.getCollege(resolvedId);
     if (!college) return null;
 
     // Get courses offered
     const { data: courses } = await supabase
       .from('courses')
       .select('*')
-      .eq('college_id', collegeId);
+      .eq('college_id', resolvedId);
 
     // Get recent cutoffs (last 3 years)
     const currentYear = new Date().getFullYear();
     const { data: cutoffs } = await supabase
       .from('cutoffs')
       .select('*')
-      .eq('college_id', collegeId)
+      .eq('college_id', resolvedId)
       .gte('year', currentYear - 3)
       .order('year', { ascending: false });
 
@@ -177,7 +198,7 @@ export class SupabaseDataService {
     const { data: stats } = await supabase
       .from('college_stats')
       .select('*')
-      .eq('college_id', collegeId)
+      .eq('college_id', resolvedId)
       .single();
 
     // Check if user has favorited (if user logged in)
@@ -187,10 +208,28 @@ export class SupabaseDataService {
         .from('favorites')
         .select('id')
         .eq('user_id', userId)
-        .eq('college_id', collegeId)
+        .eq('college_id', resolvedId)
         .single();
 
       isFavorited = !!favorite;
+    }
+
+    // Step 2: Get relationship graph if requested (default depth: 1)
+    let relationshipGraph = null;
+    if (options?.includeGraph !== false) {
+      try {
+        relationshipGraph = await getRelationshipGraph(
+          resolvedId,
+          'college',
+          {
+            maxDepth: options?.graphDepth || 1,
+            includeMetadata: false, // Keep lightweight for default case
+          }
+        );
+      } catch (error) {
+        console.error('Error fetching relationship graph:', error);
+        // Don't fail the entire request if graph fails
+      }
     }
 
     return {
@@ -198,7 +237,20 @@ export class SupabaseDataService {
       courses: courses || [],
       cutoffs: cutoffs || [],
       stats: stats || null,
-      isFavorited
+      isFavorited,
+      // Include resolution metadata
+      resolution: {
+        method: resolution.method,
+        confidence: resolution.confidence,
+        originalQuery: collegeId !== resolvedId ? collegeId : undefined,
+      },
+      // Include relationship graph if generated
+      relationshipGraph: relationshipGraph ? {
+        totalNodes: relationshipGraph.nodes.length,
+        totalEdges: relationshipGraph.edges.length,
+        relatedCourses: relationshipGraph.nodes.filter(n => n.type === 'course').length,
+        relatedStates: relationshipGraph.nodes.filter(n => n.type === 'state').length,
+      } : undefined,
     };
   }
 
@@ -398,6 +450,89 @@ export class SupabaseDataService {
     }
 
     return data || [];
+  }
+
+  /**
+   * Get course by ID with related data
+   * Enhanced with ID resolution and relationship graph
+   */
+  async getCourseDetails(courseId: string, options?: {
+    includeGraph?: boolean;
+    graphDepth?: number;
+  }) {
+    // Step 1: Smart ID resolution - handles both UUIDs and names
+    const resolution = await resolveId(courseId, {
+      type: 'course',
+      fuzzyThreshold: 0.7,
+      useCache: true,
+    });
+
+    // If not found, return null
+    if (!resolution.id) {
+      return null;
+    }
+
+    const resolvedId = resolution.id;
+
+    // Get course basic info
+    const { data: course, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('id', resolvedId)
+      .single();
+
+    if (error || !course) {
+      return null;
+    }
+
+    // Get college info if college_id exists
+    let college = null;
+    if (course.college_id) {
+      college = await this.getCollege(course.college_id);
+    }
+
+    // Get cutoffs for this course
+    const currentYear = new Date().getFullYear();
+    const { data: cutoffs } = await supabase
+      .from('cutoffs')
+      .select('*')
+      .eq('course_id', resolvedId)
+      .gte('year', currentYear - 3)
+      .order('year', { ascending: false });
+
+    // Step 2: Get relationship graph if requested
+    let relationshipGraph = null;
+    if (options?.includeGraph !== false) {
+      try {
+        relationshipGraph = await getRelationshipGraph(
+          resolvedId,
+          'course',
+          {
+            maxDepth: options?.graphDepth || 1,
+            includeMetadata: false,
+          }
+        );
+      } catch (error) {
+        console.error('Error fetching course relationship graph:', error);
+      }
+    }
+
+    return {
+      course,
+      college,
+      cutoffs: cutoffs || [],
+      resolution: {
+        method: resolution.method,
+        confidence: resolution.confidence,
+        originalQuery: courseId !== resolvedId ? courseId : undefined,
+      },
+      relationshipGraph: relationshipGraph ? {
+        totalNodes: relationshipGraph.nodes.length,
+        totalEdges: relationshipGraph.edges.length,
+        relatedColleges: relationshipGraph.nodes.filter(n => n.type === 'college').length,
+        relatedStates: relationshipGraph.nodes.filter(n => n.type === 'state').length,
+      } : undefined,
+    };
   }
 
   /**

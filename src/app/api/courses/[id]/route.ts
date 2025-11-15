@@ -1,16 +1,18 @@
 /**
  * Single Course API
  * GET /api/courses/[id] - Get a specific course by ID
+ * Enhanced with ID resolution and relationship graph
+ *
+ * Query Parameters:
+ * - includeGraph: Include relationship graph (default: true)
+ * - graphDepth: Graph traversal depth 1-3 (default: 1)
  *
  * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseDataService } from '@/services/supabase-data-service';
 import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(
   request: NextRequest,
@@ -27,28 +29,31 @@ export async function GET(
 
   try {
     const { id } = params;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const searchParams = request.nextUrl.searchParams;
 
-    // Get the course
-    const { data: course, error } = await supabase
-      .from('courses')
-      .select('*')
-      .eq('id', id)
-      .single();
+    // Parse query parameters
+    const includeGraph = searchParams.get('includeGraph') !== 'false';
+    const graphDepth = Math.min(
+      Math.max(Number(searchParams.get('graphDepth')) || 1, 1),
+      3
+    );
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { success: false, error: 'Course not found' },
-          { status: 404 }
-        );
-      }
-      throw error;
+    const service = getSupabaseDataService();
+    const result = await service.getCourseDetails(id, {
+      includeGraph,
+      graphDepth,
+    });
+
+    if (!result) {
+      return NextResponse.json(
+        { success: false, error: 'Course not found' },
+        { status: 404 }
+      );
     }
 
     const jsonResponse = NextResponse.json({
       success: true,
-      data: course,
+      ...result,
     });
 
     return addRateLimitHeaders(jsonResponse, rateLimitResult);
