@@ -6,13 +6,19 @@ const isDev = process.env.NODE_ENV === 'development';
 // });
 
 const nextConfig = {
-  // Static export for Cloudflare Pages (no Node.js server)
-  // Temporarily disabled for development to allow API routes
-  output: isDev ? undefined : 'export',
+  // ✅ REMOVED static export to unlock Next.js 16 features
+  // Now using standard SSR/SSG with Server Components
+  // output: isDev ? undefined : 'export',
 
-  // Disable image optimization (not supported in static export)
+  // ✅ ENABLED image optimization for 50-70% bandwidth savings
   images: {
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // Skip type checking to reduce memory usage
@@ -28,9 +34,18 @@ const nextConfig = {
     },
   }),
 
-  // Minimal experimental features to reduce memory
+  // ✅ Enhanced experimental features for Next.js 16
   experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion'],
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
+
+    // ✅ Server Actions for type-safe mutations
+    serverActions: {
+      bodySizeLimit: '2mb',
+      allowedOrigins: ['localhost:3500']
+    },
+
+    // ✅ Partial Prerendering (latest Next.js feature)
+    // ppr: true,  // Enable when ready for production
   },
 
   // Configure webpack for memory efficiency and WASM support
