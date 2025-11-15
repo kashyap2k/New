@@ -1,15 +1,27 @@
 /**
  * Statistics API
  * GET /api/stats - Get platform-wide statistics
+ *
+ * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = standardRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json({ success: false, error: rateLimitResult.error }, { status: 429 }),
+      rateLimitResult
+    );
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -58,7 +70,7 @@ export async function GET(request: NextRequest) {
       streamCounts[stream] = (streamCounts[stream] || 0) + 1;
     });
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       data: {
         ...stats,
@@ -68,6 +80,8 @@ export async function GET(request: NextRequest) {
         lastUpdated: new Date().toISOString(),
       },
     });
+
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
 
   } catch (error) {
     console.error('Stats API error:', error);

@@ -1,12 +1,24 @@
 /**
  * Colleges API Route
  * GET /api/colleges - Search and filter colleges
+ *
+ * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseDataService } from '@/services/supabase-data-service';
+import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = standardRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json({ success: false, error: rateLimitResult.error }, { status: 429 }),
+      rateLimitResult
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -28,10 +40,12 @@ export async function GET(request: NextRequest) {
     const service = getSupabaseDataService();
     const result = await service.searchColleges(filters);
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       ...result
     });
+
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
   } catch (error) {
     console.error('Error in colleges API:', error);
     return NextResponse.json(

@@ -8,15 +8,27 @@
  * - Degree Types (UG, PG, Diploma, etc.)
  * - Colleges (all colleges offering courses)
  * - States (derived from colleges)
+ *
+ * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = standardRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json({ success: false, error: rateLimitResult.error }, { status: 429 }),
+      rateLimitResult
+    );
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -101,7 +113,7 @@ export async function GET(request: NextRequest) {
       states,
     });
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       data: {
         streams: streams.map(stream => ({
@@ -131,6 +143,8 @@ export async function GET(request: NextRequest) {
         })),
       },
     });
+
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
 
   } catch (error) {
     console.error('Courses filters API error:', error);

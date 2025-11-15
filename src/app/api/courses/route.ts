@@ -4,15 +4,27 @@
  *
  * Provides comprehensive course search and filtering capabilities
  * with support for streams, branches, colleges, and more.
+ *
+ * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = standardRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json({ success: false, error: rateLimitResult.error }, { status: 429 }),
+      rateLimitResult
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -115,7 +127,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil((count || 0) / limit);
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       data: courses || [],
       pagination: {
@@ -128,6 +140,8 @@ export async function GET(request: NextRequest) {
         hasPrevious: offset > 0,
       },
     });
+
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
 
   } catch (error) {
     console.error('Courses API error:', error);

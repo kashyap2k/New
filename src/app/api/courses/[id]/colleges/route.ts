@@ -1,10 +1,13 @@
 /**
  * Course Colleges API
  * GET /api/courses/[id]/colleges - Get all colleges offering a specific course
+ *
+ * Rate Limited: 100 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { standardRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -13,6 +16,15 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Apply rate limiting
+  const rateLimitResult = standardRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json({ success: false, error: rateLimitResult.error }, { status: 429 }),
+      rateLimitResult
+    );
+  }
+
   try {
     const { id } = params;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -73,7 +85,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       success: true,
       data: colleges || [],
       course: {
@@ -83,6 +95,8 @@ export async function GET(
         branch: course.branch,
       },
     });
+
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
 
   } catch (error) {
     console.error('Course colleges API error:', error);
