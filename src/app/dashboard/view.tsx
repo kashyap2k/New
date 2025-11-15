@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const loadRealStats = async () => {
     try {
       // Load real statistics from our unified database
-      const statsResponse = await fetch('/api/fresh/stats');
+      const statsResponse = await fetch('/api/stats');
       
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();

@@ -193,8 +193,8 @@ const CoursesPage: React.FC = () => {
         ...newFilters
       });
 
-      // Call unified API
-      const response = await fetch(`/api/fresh/courses?${params}`);
+      // Call courses API (updated to use Supabase endpoint)
+      const response = await fetch(`/api/courses?${params}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -269,9 +269,9 @@ const CoursesPage: React.FC = () => {
     setSelectedCourse(course);
     setIsCollegesModalOpen(true);
     
-    // Fetch colleges for this course
+    // Fetch colleges for this course (updated to use Supabase endpoint)
     try {
-      const response = await fetch(`/api/fresh/courses/${course.id}/colleges`);
+      const response = await fetch(`/api/courses/${course.id}/colleges`);
       if (response.ok) {
         const data = await response.json();
         setColleges(data.data || []);

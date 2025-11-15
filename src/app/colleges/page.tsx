@@ -210,8 +210,8 @@ const CollegesPage: React.FC = () => {
         ...newFilters
       });
 
-      // Call fresh API
-      const response = await fetch(`/api/fresh/colleges?${params}`);
+      // Call colleges API (updated to use Supabase endpoint)
+      const response = await fetch(`/api/colleges?${params}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -297,8 +297,8 @@ const CollegesPage: React.FC = () => {
     setIsModalOpen(true);
 
     try {
-      // Fetch college details with courses
-      const response = await fetch(`/api/fresh/colleges/${college.id}`);
+      // Fetch college details with courses (updated to use Supabase endpoint)
+      const response = await fetch(`/api/colleges/${college.id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
