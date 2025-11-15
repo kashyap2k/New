@@ -1,13 +1,24 @@
 /**
  * Recommendations API Route
  * GET /api/recommendations - Get personalized college recommendations
- * Uses basic algorithm now, will be enhanced with ML in Phase 2
+ * Enhanced with graph-based similarity, collaborative filtering, and ML
+ *
+ * Features:
+ * - Graph-based similarity (colleges with similar offerings)
+ * - Collaborative filtering (users who liked X also liked Y)
+ * - Content-based filtering (similar attributes)
+ * - Trending boost (popular colleges get higher scores)
+ * - Personalized ranking (based on user preferences)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { canGetRecommendations, getUserSubscription } from '@/lib/supabase';
 import { getSupabaseDataService } from '@/services/supabase-data-service';
+import {
+  getPersonalizedRecommendationsForUser,
+  getCollegeRecommendations,
+} from '@/services/recommendation-engine';
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,10 +52,23 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : 10;
+    const limit = Math.min(Number(searchParams.get('limit')) || 20, 50);
+    const sourceId = searchParams.get('sourceId'); // Optional: Get recommendations similar to this college
 
-    const service = getSupabaseDataService();
-    const recommendations = await service.getRecommendations(userId, limit);
+    // If sourceId provided, get similar colleges
+    let recommendations;
+    if (sourceId) {
+      recommendations = await getCollegeRecommendations({
+        sourceId,
+        sourceType: 'college',
+        userId,
+        limit,
+        includeReasons: true,
+      });
+    } else {
+      // Get personalized recommendations based on user's favorites
+      recommendations = await getPersonalizedRecommendationsForUser(userId, limit);
+    }
 
     // Increment recommendation count for free users
     const { tier } = await getUserSubscription(userId);
@@ -55,7 +79,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: recommendations,
-      count: recommendations.length
+      count: recommendations.length,
+      personalized: !sourceId,
+      algorithm: 'graph_ml_v2', // Enhanced algorithm
     });
   } catch (error) {
     console.error('Error fetching recommendations:', error);
@@ -188,8 +214,9 @@ export async function POST(request: NextRequest) {
       success: true,
       data: scoredRecommendations.slice(0, 10),
       count: scoredRecommendations.length,
-      algorithm: 'basic_v1', // Will change to 'ml_v2' after advanced engine
-      cached: true
+      algorithm: 'rank_based_v1', // Rank-based algorithm
+      cached: true,
+      note: 'Use GET /api/recommendations for graph-based ML recommendations'
     });
   } catch (error) {
     console.error('Error generating recommendations:', error);
