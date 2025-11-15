@@ -1,15 +1,19 @@
+/**
+ * AuthContext - Supabase Implementation
+ *
+ * This replaces the Firebase AuthContext with Supabase Auth
+ * while maintaining the same interface for backward compatibility
+ *
+ * To migrate: Rename this file to AuthContext.tsx and delete the old one
+ */
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithGoogle, 
-  signOutUser,
-  getAuthToken,
-  isAdmin as checkIsAdmin
-} from '@/lib/firebase';
-import { AuthContextType } from '@/types';
+import { supabase, getUserSubscription } from '@/lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
+import type { AuthContextType } from '@/types';
+import type { SubscriptionTier } from '@/lib/subscription-plans';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -25,101 +29,183 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+// Extended user type with subscription info
+interface ExtendedUser extends User {
+  subscription_tier?: SubscriptionTier;
+  subscription_end_date?: string | null;
+  selected_stream?: 'UG' | 'PG_MEDICAL' | 'PG_DENTAL';
+  neet_rank?: number | null;
+  neet_year?: number | null;
+  category?: string | null;
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [showStreamSelection, setShowStreamSelection] = useState(false);
 
-  // Load user data from localStorage on mount
-  useEffect(() => {
-    const loadUserData = () => {
-      try {
-        const savedUserData = localStorage.getItem('neetlogiq_user_data');
-        if (savedUserData) {
-          const userData = JSON.parse(savedUserData);
-          if (userData.selectedStream) {
-            setUser(prev => prev ? { ...prev, selectedStream: userData.selectedStream } : null);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
+  // Load user profile data from Supabase
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profile) {
+        return {
+          subscription_tier: profile.subscription_tier,
+          subscription_end_date: profile.subscription_end_date,
+          selected_stream: profile.preferences?.selectedStream,
+          neet_rank: profile.neet_rank,
+          neet_year: profile.neet_year,
+          category: profile.category
+        };
       }
-    };
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+    return {};
+  };
 
-    loadUserData();
-  }, []);
+  // Create user profile if it doesn't exist
+  const ensureUserProfile = async (userId: string) => {
+    try {
+      const { data: existing } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
+
+      if (!existing) {
+        await supabase.from('user_profiles').insert({
+          user_id: userId,
+          subscription_tier: 'free',
+          onboarding_completed: false
+        });
+      }
+    } catch (error) {
+      console.error('Error ensuring user profile:', error);
+    }
+  };
+
+  // Check admin status (stored in user_metadata)
+  const checkAdminStatus = (user: User): boolean => {
+    const email = user.email;
+    const metadata = user.user_metadata;
+
+    // Check if user is admin (you can customize this logic)
+    if (email === 'kashyap0071232000@gmail.com') return true;
+    if (metadata?.role === 'admin') return true;
+    if (metadata?.is_admin === true) return true;
+
+    return false;
+  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(async (user) => {
-      if (user) {
-        // Get saved user data from localStorage
-        let selectedStream = null;
-        try {
-          const savedUserData = localStorage.getItem('neetlogiq_user_data');
-          if (savedUserData) {
-            const userData = JSON.parse(savedUserData);
-            selectedStream = userData.selectedStream || null;
-          }
-        } catch (error) {
-          console.error('Error loading user data:', error);
-        }
+    // Get initial session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
 
-        setUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          name: user.displayName || user.email?.split('@')[0] || 'User',
-          imageUrl: user.photoURL || undefined,
-          givenName: user.displayName?.split(' ')[0] || undefined,
-          familyName: user.displayName?.split(' ').slice(1).join(' ') || undefined,
-          selectedStream
-        } as unknown as User);
-        
-        // Show stream selection modal if user hasn't selected a stream yet
-        // Skip for developer account
-        if (!selectedStream && user.email !== 'kashyap0071232000@gmail.com') {
+      if (session?.user) {
+        // Ensure user profile exists
+        await ensureUserProfile(session.user.id);
+
+        // Load user profile data
+        const profileData = await loadUserProfile(session.user.id);
+
+        // Create extended user object
+        const extendedUser: ExtendedUser = {
+          ...session.user,
+          ...profileData
+        };
+
+        setUser(extendedUser);
+        setAuthToken(session.access_token);
+        setIsUserAdmin(checkAdminStatus(session.user));
+
+        // Show stream selection if not completed
+        if (!profileData.selected_stream && session.user.email !== 'kashyap0071232000@gmail.com') {
           setShowStreamSelection(true);
         }
-        
-        // Get auth token
-        try {
-          const token = await getAuthToken();
-          setAuthToken(token);
-          
-          // Check admin status
-          const adminStatus = await checkIsAdmin();
-          setIsUserAdmin(adminStatus);
-          
-          console.log('🔐 Auth Status:', {
-            user: user.email,
-            isAdmin: adminStatus,
-            hasToken: !!token,
-            selectedStream
-          });
-        } catch (error) {
-          console.error('Error getting auth token or admin status:', error);
-          setAuthToken(null);
-          setIsUserAdmin(false);
-        }
+
+        console.log('🔐 Auth Status:', {
+          user: session.user.email,
+          isAdmin: checkAdminStatus(session.user),
+          hasToken: !!session.access_token,
+          tier: profileData.subscription_tier,
+          selectedStream: profileData.selected_stream
+        });
       } else {
         setUser(null);
         setAuthToken(null);
         setIsUserAdmin(false);
-        setShowStreamSelection(false);
       }
+
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event);
+
+        setSession(session);
+
+        if (session?.user) {
+          // Ensure user profile exists
+          await ensureUserProfile(session.user.id);
+
+          // Load user profile data
+          const profileData = await loadUserProfile(session.user.id);
+
+          // Create extended user object
+          const extendedUser: ExtendedUser = {
+            ...session.user,
+            ...profileData
+          };
+
+          setUser(extendedUser);
+          setAuthToken(session.access_token);
+          setIsUserAdmin(checkAdminStatus(session.user));
+
+          // Show stream selection if not completed
+          if (!profileData.selected_stream && session.user.email !== 'kashyap0071232000@gmail.com') {
+            setShowStreamSelection(true);
+          }
+        } else {
+          setUser(null);
+          setAuthToken(null);
+          setIsUserAdmin(false);
+          setShowStreamSelection(false);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogleHandler = async () => {
+  const signInWithGoogle = async () => {
     try {
       setLoading(true);
-      await signInWithGoogle();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+
+      if (error) throw error;
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -131,8 +217,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOutHandler = async () => {
     try {
       setLoading(true);
-      await signOutUser();
-      // Clear user data from localStorage
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Clear local storage
       localStorage.removeItem('neetlogiq_user_data');
     } catch (error) {
       console.error('Sign out error:', error);
@@ -142,11 +230,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Helper function to get fresh auth token
+  // Get fresh auth token
   const getToken = async (): Promise<string | null> => {
     if (!user) return null;
+
     try {
-      const token = await getAuthToken();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+
+      const token = session?.access_token || null;
       setAuthToken(token);
       return token;
     } catch (error) {
@@ -158,23 +250,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Save user stream selection
   const saveStreamSelection = async (stream: 'UG' | 'PG_MEDICAL' | 'PG_DENTAL') => {
     if (!user) return;
-    
+
     try {
-      // Update user state
-      setUser(prev => prev ? { ...prev, selectedStream: stream } : null);
-      
-      // Save to localStorage
-      const userData = {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        selectedStream: stream
-      };
-      localStorage.setItem('neetlogiq_user_data', JSON.stringify(userData));
-      
+      // Update user profile in Supabase
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          preferences: { selectedStream: stream },
+          onboarding_completed: true
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local user state
+      setUser(prev => prev ? { ...prev, selected_stream: stream } : null);
+
       // Hide stream selection modal
       setShowStreamSelection(false);
-      
+
       console.log('✅ Stream selection saved:', stream);
     } catch (error) {
       console.error('Error saving stream selection:', error);
@@ -182,10 +276,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Update user profile (NEET rank, category, etc.)
+  const updateUserProfile = async (updates: {
+    neet_rank?: number;
+    neet_year?: number;
+    category?: string;
+    state?: string;
+    preferences?: any;
+  }) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local user state
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+
+      console.log('✅ User profile updated');
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  };
+
+  // Get user's subscription info
+  const getSubscriptionInfo = async () => {
+    if (!user) return { tier: 'free', endDate: null };
+
+    const { tier, endDate } = await getUserSubscription(user.id);
+    return { tier, endDate };
+  };
+
+  // Backward compatibility: Convert Supabase User to Firebase-like User
+  const legacyUser = user ? {
+    uid: user.id,
+    email: user.email,
+    displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
+    photoURL: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    imageUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+    givenName: user.user_metadata?.given_name,
+    familyName: user.user_metadata?.family_name,
+    selectedStream: user.selected_stream
+  } : null;
+
   const value: AuthContextType = {
-    user,
+    user: legacyUser as any,
     loading,
-    signInWithGoogle: signInWithGoogleHandler,
+    signInWithGoogle,
     signOut: signOutHandler,
     signOutUser: signOutHandler,
     isAuthenticated: !!user,
@@ -195,7 +338,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     getToken,
     // Stream selection
     showStreamSelection,
-    saveStreamSelection
+    saveStreamSelection,
+    // New Supabase-specific features
+    supabaseUser: user,
+    session,
+    updateUserProfile,
+    getSubscriptionInfo
   };
 
   return (
@@ -203,4 +351,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Export a hook for subscription info
+export const useSubscription = () => {
+  const { supabaseUser } = useAuth();
+
+  const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (!supabaseUser) {
+        setTier('free');
+        setEndDate(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { tier: userTier, endDate: userEndDate } = await getUserSubscription(supabaseUser.id);
+        setTier(userTier as SubscriptionTier);
+        setEndDate(userEndDate);
+      } catch (error) {
+        console.error('Error loading subscription:', error);
+        setTier('free');
+        setEndDate(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSubscription();
+  }, [supabaseUser]);
+
+  return { tier, endDate, loading, isPremium: tier !== 'free' };
 };
