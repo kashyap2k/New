@@ -4,12 +4,34 @@
  *
  * This endpoint provides unified search functionality across all entities,
  * supporting both simple text search and advanced filtering.
+ *
+ * Rate Limited: 300 requests/minute per IP
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseDataService } from '@/services/supabase-data-service';
+import { generousRateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = generousRateLimit.check(request);
+  if (!rateLimitResult.success) {
+    return addRateLimitHeaders(
+      NextResponse.json(
+        {
+          success: false,
+          error: rateLimitResult.error,
+          colleges: [],
+          courses: [],
+          cutoffs: [],
+          total_results: 0,
+        },
+        { status: 429 }
+      ),
+      rateLimitResult
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const startTime = Date.now();
@@ -129,7 +151,9 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    return NextResponse.json(response);
+    // Add rate limit headers to successful response
+    const jsonResponse = NextResponse.json(response);
+    return addRateLimitHeaders(jsonResponse, rateLimitResult);
 
   } catch (error) {
     console.error('Unified search error:', error);
