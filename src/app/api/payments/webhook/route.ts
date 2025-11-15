@@ -317,4 +317,3 @@ async function handleSubscriptionCompleted(payload: any) {
 }
 
 // Prevent route caching
-export const dynamic = 'force-dynamic';

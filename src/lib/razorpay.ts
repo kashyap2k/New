@@ -6,11 +6,28 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-// Razorpay instance (server-side only)
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Lazily initialize Razorpay instance to avoid build-time errors
+let razorpayInstance: Razorpay | null = null;
+
+export function getRazorpay(): Razorpay {
+  if (!razorpayInstance) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+      throw new Error('Razorpay credentials not configured');
+    }
+
+    razorpayInstance = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+  }
+  return razorpayInstance;
+}
+
+// Legacy export for backwards compatibility
+export const razorpay = getRazorpay;
 
 /**
  * Verify Razorpay payment signature

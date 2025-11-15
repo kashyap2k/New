@@ -9,6 +9,8 @@ export const metadata = {
   description: 'Manage colleges, courses, and cutoff data',
 };
 
+// Admin page uses cookies for auth, must be dynamic
+
 export default async function AdminPage() {
   // Check authentication and admin privileges
   const supabase = createServerComponentClient({ cookies });

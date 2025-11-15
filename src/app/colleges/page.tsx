@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, GraduationCap, Sparkles, ArrowRight } from 'lucide-react';

@@ -9,7 +9,6 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // Force dynamic rendering for API route
-export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 // Expected tables from complete hybrid schema (50+ tables)

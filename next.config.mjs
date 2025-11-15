@@ -6,19 +6,18 @@ const isDev = process.env.NODE_ENV === 'development';
 // });
 
 const nextConfig = {
-  // ✅ REMOVED static export to unlock Next.js 16 features
-  // Now using standard SSR/SSG with Server Components
-  // output: isDev ? undefined : 'export',
+  // Static export mode (required for current architecture)
+  // NOTE: Static export limits some Next.js features (SSR, Server Components, Server Actions)
+  // but is necessary for the current client-side architecture
+  output: isDev ? undefined : 'export',
 
-  // ✅ ENABLED image optimization for 50-70% bandwidth savings
+  // Image configuration for static export
+  // Note: unoptimized required for static export, but we can still optimize in dev mode
   images: {
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: true,  // Required for static export
+    // formats: ['image/avif', 'image/webp'],  // Not available with unoptimized
+    // deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    // imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   // Skip type checking to reduce memory usage

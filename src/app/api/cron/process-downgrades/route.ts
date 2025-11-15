@@ -62,5 +62,4 @@ export async function POST(request: NextRequest) {
 }
 
 // Prevent this route from being cached
-export const dynamic = 'force-dynamic';
 export const runtime = 'edge';

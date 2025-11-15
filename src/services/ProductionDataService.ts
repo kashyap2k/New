@@ -79,7 +79,8 @@ export class ProductionDataService {
       }
 
       // Load WebAssembly module for production processing
-      const wasmModule = await import('../../public/WASM/data_processor.js');
+      // Using webpack magic comment to make import optional
+      const wasmModule = await import(/* webpackIgnore: true */ '../../public/WASM/data_processor.js');
       this.wasmModule = await wasmModule.default();
       console.log('✅ WebAssembly module loaded for production');
     } catch (error) {

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+// import { Inter } from 'next/font/google'  // Temporarily disabled due to build-time network issues
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
@@ -9,7 +9,8 @@ import LayoutWithStreamSelection from '@/components/layout/LayoutWithStreamSelec
 import StreamGuard from '@/components/StreamGuard'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 
-const inter = Inter({ subsets: ['latin'] })
+// Using system fonts as fallback for build compatibility
+// const inter = Inter({ subsets: ['latin'] })
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -72,7 +73,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <ErrorBoundary>
           <ThemeProvider>
             <AuthProvider>

@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Users, Target, GraduationCap, Star, Shield, Zap, Phone, Mail, MapPin } from 'lucide-react';

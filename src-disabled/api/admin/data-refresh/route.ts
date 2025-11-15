@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getIdBasedDataService } from '@/services/id-based-data-service';
+import { getIdBasedDataService } from '@/services/IdBasedDataService';
 import { checkAdminAccess, logAdminAction } from '@/lib/admin-middleware';
 
 /**

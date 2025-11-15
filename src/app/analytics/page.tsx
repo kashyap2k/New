@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, PieChart as PieChartIcon, TrendingUp, Users, Award, ArrowLeft, Sparkles, Filter } from 'lucide-react';
