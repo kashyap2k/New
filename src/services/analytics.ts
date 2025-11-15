@@ -510,18 +510,47 @@ export function createCustomDashboard(): DashboardWidget[] {
 }
 
 /**
- * Get real-time analytics data
+ * Get real-time analytics data from API
  */
-export function getRealtimeAnalytics() {
-  return {
-    systemMetrics: generateSystemMetrics(),
-    userAnalytics: generateUserAnalytics(),
-    errorLogs: generateErrorLogs(),
-    performanceMetrics: generatePerformanceMetrics(),
-    alerts: getActiveAlerts(),
-    alertRules: getStoredAlertRules(),
-    dashboardWidgets: createCustomDashboard()
-  };
+export async function getRealtimeAnalytics(dateRange: string = '7d') {
+  try {
+    // Fetch real analytics from API
+    const response = await fetch(`/api/analytics?range=${dateRange}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch analytics');
+    }
+    const apiData = await response.json();
+
+    // Combine API data with local data (alerts, rules)
+    return {
+      // Real data from API
+      platformMetrics: apiData.platformMetrics,
+      userAnalytics: apiData.userAnalytics,
+      distribution: apiData.distribution,
+      popular: apiData.popular,
+      performance: apiData.performance,
+
+      // Local data (still using mock for now)
+      systemMetrics: generateSystemMetrics(),
+      errorLogs: generateErrorLogs(),
+      performanceMetrics: generatePerformanceMetrics(),
+      alerts: getActiveAlerts(),
+      alertRules: getStoredAlertRules(),
+      dashboardWidgets: createCustomDashboard(),
+    };
+  } catch (error) {
+    console.error('Failed to fetch real analytics, falling back to mock data:', error);
+    // Fallback to mock data if API fails
+    return {
+      systemMetrics: generateSystemMetrics(),
+      userAnalytics: generateUserAnalytics(),
+      errorLogs: generateErrorLogs(),
+      performanceMetrics: generatePerformanceMetrics(),
+      alerts: getActiveAlerts(),
+      alertRules: getStoredAlertRules(),
+      dashboardWidgets: createCustomDashboard(),
+    };
+  }
 }
 
 /**
