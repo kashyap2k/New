@@ -1,36 +1,28 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Filter, BookOpen, GraduationCap, BarChart3, Clock } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import dynamic from 'next/dynamic';
-
 const SearchBar = dynamic(() => import('@/components/search/SearchBar'), {
   loading: () => <div className="animate-pulse bg-gray-200 h-12 rounded-lg"></div>,
   ssr: false
 });
-
 const AISearch = dynamic(() => import('@/components/ai/AISearch'), {
   loading: () => <div className="animate-pulse bg-gray-200 h-12 rounded-lg"></div>,
   ssr: false
 });
-
 const Filters = dynamic(() => import('@/components/search/Filters'), {
   loading: () => <div className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>,
   ssr: false
 });
-
 const AdvancedSearch = dynamic(() => import('@/components/search/AdvancedSearch'), {
   loading: () => <div className="animate-pulse bg-gray-200 h-48 rounded-lg"></div>,
   ssr: false
 });
 import { SearchResult, SearchFilters, FilterOptions } from '@/types';
 import { apiService } from '@/services/api';
-
 const SearchPage: React.FC = () => {
   const searchParams = useSearchParams();
   const [searchResult, setSearchResult] = useState<SearchResult>({
@@ -56,7 +48,6 @@ const SearchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'colleges' | 'courses' | 'cutoffs'>('all');
   const [useAISearch, setUseAISearch] = useState(true);
   const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
-
   // Initialize search query from URL
   useEffect(() => {
     const query = searchParams.get('q') || '';
@@ -65,7 +56,6 @@ const SearchPage: React.FC = () => {
       performSearch(query);
     }
   }, [searchParams]);
-
   // Load filter options
   useEffect(() => {
     const loadFilterOptions = async () => {
@@ -78,10 +68,8 @@ const SearchPage: React.FC = () => {
         console.error('Error loading filter options:', err);
       }
     };
-
     loadFilterOptions();
   }, []);
-
   const performSearch = async (query: string) => {
     setLoading(true);
     setError(null);
@@ -117,12 +105,10 @@ const SearchPage: React.FC = () => {
       setLoading(false);
     }
   };
-
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     performSearch(query);
   };
-
   const handleAdvancedSearch = (searchFilters: any) => {
     setFilters(searchFilters);
     setSearchQuery(searchFilters.query || '');
@@ -130,14 +116,12 @@ const SearchPage: React.FC = () => {
       performSearch(searchFilters.query);
     }
   };
-
   const handleFiltersChange = (newFilters: SearchFilters) => {
     setFilters(newFilters);
     if (searchQuery) {
       performSearch(searchQuery);
     }
   };
-
   const getFilteredResults = () => {
     switch (activeTab) {
       case 'colleges':
@@ -154,7 +138,6 @@ const SearchPage: React.FC = () => {
         };
     }
   };
-
   const getResultCount = () => {
     switch (activeTab) {
       case 'colleges':
@@ -167,7 +150,6 @@ const SearchPage: React.FC = () => {
         return searchResult.total_results;
     }
   };
-
   const CollegeCard: React.FC<{ college: any }> = ({ college }) => (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6">
       <div className="flex justify-between items-start mb-4">
@@ -193,7 +175,6 @@ const SearchPage: React.FC = () => {
       </button>
     </div>
   );
-
   const CourseCard: React.FC<{ course: any }> = ({ course }) => (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6">
       <div className="flex justify-between items-start mb-4">
@@ -219,7 +200,6 @@ const SearchPage: React.FC = () => {
       </button>
     </div>
   );
-
   const CutoffCard: React.FC<{ cutoff: any }> = ({ cutoff }) => (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6">
       <div className="flex justify-between items-start mb-4">
@@ -259,7 +239,6 @@ const SearchPage: React.FC = () => {
       </button>
     </div>
   );
-
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -273,7 +252,6 @@ const SearchPage: React.FC = () => {
               Find colleges, courses, and cutoffs that match your criteria.
             </p>
           </div>
-
           {/* Search and Filters */}
           <div className="mb-8 space-y-4">
             {/* Search Mode Toggle */}
@@ -323,7 +301,6 @@ const SearchPage: React.FC = () => {
                 </button>
               </div>
             </div>
-
             {useAISearch ? (
               <AISearch
                 onSearchResult={(result) => {
@@ -350,7 +327,6 @@ const SearchPage: React.FC = () => {
               </>
             )}
           </div>
-
           {/* Results Summary */}
           {searchQuery && (
             <div className="mb-6">
@@ -367,14 +343,12 @@ const SearchPage: React.FC = () => {
               </div>
             </div>
           )}
-
           {/* Error State */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
               <p className="text-red-800 dark:text-red-200">{error}</p>
             </div>
           )}
-
           {/* Results Tabs */}
           {searchQuery && (
             <div className="mb-6">
@@ -424,7 +398,6 @@ const SearchPage: React.FC = () => {
               </div>
             </div>
           )}
-
           {/* Results */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -456,7 +429,6 @@ const SearchPage: React.FC = () => {
                       </div>
                     </div>
                   )}
-
                   {/* Courses Section */}
                   {searchResult.courses.length > 0 && (
                     <div>
@@ -471,7 +443,6 @@ const SearchPage: React.FC = () => {
                       </div>
                     </div>
                   )}
-
                   {/* Cutoffs Section */}
                   {searchResult.cutoffs.length > 0 && (
                     <div>
@@ -488,7 +459,6 @@ const SearchPage: React.FC = () => {
                   )}
                 </div>
               )}
-
               {/* Individual Tab Results */}
               {activeTab !== 'all' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -503,7 +473,6 @@ const SearchPage: React.FC = () => {
                   ))}
                 </div>
               )}
-
               {/* Empty State */}
               {getResultCount() === 0 && !loading && (
                 <div className="text-center py-12">
@@ -533,5 +502,4 @@ const SearchPage: React.FC = () => {
     </Layout>
   );
 };
-
 export default SearchPage;

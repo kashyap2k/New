@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,7 +27,6 @@ import CutoffDetailsModal from '@/components/cutoffs/CutoffDetailsModal';
 import { UnifiedSearchBar } from '@/components/search/UnifiedSearchBar';
 import { useStreamDataService } from '@/services/StreamDataService';
 import { useVectorSearch } from '@/hooks/useVectorSearch';
-
 interface Cutoff {
   id: string;
   college: string;
@@ -47,7 +43,6 @@ interface Cutoff {
   counsellingBody: string;
   collegeType: string;
 }
-
 interface MasterData {
   states: Array<{ id: string; name: string }>;
   colleges: Array<{ id: string; name: string; state_id: string; college_type: string; stream_id: string; stream_name: string; counselling_bodies: string[] }>;
@@ -55,7 +50,6 @@ interface MasterData {
   quotas: Array<{ id: string; name: string }>;
   categories: Array<{ id: string; name: string }>;
 }
-
 const CutoffsPage: React.FC = () => {
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
@@ -92,7 +86,6 @@ const CutoffsPage: React.FC = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCutoff, setSelectedCutoff] = useState<Cutoff | null>(null);
-
   // Rank range states
   const [minPossibleRank, setMinPossibleRank] = useState(1);
   const [maxPossibleRank, setMaxPossibleRank] = useState(1000000);
@@ -100,12 +93,10 @@ const CutoffsPage: React.FC = () => {
     openingRank: [1, 1000000],
     closingRank: [1, 1000000]
   });
-
   // Use stream-aware data service
   const { cutoffs: cutoffData, masterData, loading: isLoading, error: dataError, currentStream } = useStreamDataService();
   
   const { searchCutoffs, processNaturalLanguageQuery } = useVectorSearch();
-
   // Auto-collapse sidebar on smaller screens
   useEffect(() => {
     const handleResize = () => {
@@ -113,21 +104,17 @@ const CutoffsPage: React.FC = () => {
         setIsSidebarCollapsed(true);
       }
     };
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
   // Remove scroll detection since we're using button-triggered transition
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 50);
     return () => clearTimeout(timer);
   }, []);
-
   // Handle AI-powered search
   const handleAISearch = async (query: string) => {
     try {
@@ -149,23 +136,19 @@ const CutoffsPage: React.FC = () => {
       return [];
     }
   };
-
   // Handle search results
   const handleSearchResults = (results: any[]) => {
     console.log('Search results:', results);
   };
-
   // Handle view details
   const handleViewDetails = (cutoff: Cutoff) => {
     setSelectedCutoff(cutoff);
     setIsModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCutoff(null);
   };
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background */}
@@ -199,7 +182,6 @@ const CutoffsPage: React.FC = () => {
           <div className="absolute inset-0 bg-linear-to-br from-purple-50/30 via-pink-50/20 to-indigo-50/30 z-10"></div>
           </LightVortex>
       )}
-
       <AnimatePresence>
         {!showContent ? (
           <motion.div
@@ -239,7 +221,6 @@ const CutoffsPage: React.FC = () => {
                 showAIInsight={true}
               />
               </motion.div>
-
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setViewType('card')}
@@ -304,7 +285,6 @@ const CutoffsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-
         {/* Smart Filter Dashboard */}
         <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between mb-4">
@@ -391,7 +371,6 @@ const CutoffsPage: React.FC = () => {
             )}
           </AnimatePresence>
         </div>
-
         {/* Data Table Section */}
         <div className="px-4 sm:px-6 pb-8">
             {/* Error Display */}
@@ -405,7 +384,6 @@ const CutoffsPage: React.FC = () => {
                 {error || dataError}
             </motion.div>
             )}
-
             {/* Cutoffs Display */}
               {isLoading ? (
                 <div className="flex justify-center items-center py-16">
@@ -446,7 +424,6 @@ const CutoffsPage: React.FC = () => {
                           }`}>
                             {cutoff.stream}
                     </div>
-
                         <div className={`flex items-center justify-center text-xs ${
                         isDarkMode ? 'text-white/80' : 'text-gray-600'
                           }`}>
@@ -460,7 +437,6 @@ const CutoffsPage: React.FC = () => {
                               {cutoff.category} • {cutoff.totalSeats} seats
                           </div>
                   </div>
-
                         <button 
                         className="w-full bg-linear-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg text-center font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center text-xs"
                           onClick={(e) => {
@@ -504,8 +480,6 @@ const CutoffsPage: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-
       {/* Cutoff Details Modal */}
       <CutoffDetailsModal
         isOpen={isModalOpen}
@@ -517,5 +491,4 @@ const CutoffsPage: React.FC = () => {
     </div>
   );
 };
-
 export default CutoffsPage;

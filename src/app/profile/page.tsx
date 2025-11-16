@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -37,7 +34,6 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useStream } from '@/contexts/StreamContext';
 import RequestStreamChangeDialog from '@/components/user/RequestStreamChangeDialog';
-
 interface UserProfile {
   uid: string;
   email: string;
@@ -68,12 +64,10 @@ interface UserProfile {
     achievementPoints: number;
   };
 }
-
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, loading } = useAuth();
   const { selectedStream, isLocked, changeRequested } = useStream();
   const router = useRouter();
-
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security' | 'activity'>('profile');
@@ -92,33 +86,28 @@ const ProfilePage: React.FC = () => {
     occupation: '',
     education: ''
   });
-
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
-
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
     confirm: false
   });
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, loading, router]);
-
   // Load user profile
   useEffect(() => {
     if (user && isAuthenticated) {
       loadProfile();
     }
   }, [user, isAuthenticated]);
-
   const loadProfile = async () => {
     try {
       setProfileLoading(true);
@@ -171,7 +160,6 @@ const ProfilePage: React.FC = () => {
       setProfileLoading(false);
     }
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -179,7 +167,6 @@ const ProfilePage: React.FC = () => {
       [name]: value
     }));
   };
-
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({
@@ -187,7 +174,6 @@ const ProfilePage: React.FC = () => {
       [name]: value
     }));
   };
-
   const handlePreferenceChange = (key: string, value: any) => {
     if (profile) {
       setProfile(prev => prev ? {
@@ -199,7 +185,6 @@ const ProfilePage: React.FC = () => {
       } : null);
     }
   };
-
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
@@ -224,19 +209,16 @@ const ProfilePage: React.FC = () => {
       setSaving(false);
     }
   };
-
   const handleChangePassword = async () => {
     try {
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         alert('New passwords do not match');
         return;
       }
-
       if (passwordData.newPassword.length < 8) {
         alert('Password must be at least 8 characters long');
         return;
       }
-
       setSaving(true);
       // TODO: Implement actual password change API call
       console.log('Changing password');
@@ -255,7 +237,6 @@ const ProfilePage: React.FC = () => {
       setSaving(false);
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -263,7 +244,6 @@ const ProfilePage: React.FC = () => {
       day: 'numeric'
     });
   };
-
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -271,11 +251,9 @@ const ProfilePage: React.FC = () => {
       </div>
     );
   }
-
   if (!isAuthenticated || !profile) {
     return null;
   }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -329,7 +307,6 @@ const ProfilePage: React.FC = () => {
               </p>
             </div>
           </div>
-
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center">
@@ -350,7 +327,6 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
         </motion.div>
-
         {/* Navigation Tabs */}
         <div className="mb-6">
           <nav className="flex space-x-8">
@@ -375,7 +351,6 @@ const ProfilePage: React.FC = () => {
             ))}
           </nav>
         </div>
-
         {/* Profile Tab */}
         {activeTab === 'profile' && (
           <motion.div
@@ -428,7 +403,6 @@ const ProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -448,7 +422,6 @@ const ProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Last Name
@@ -467,7 +440,6 @@ const ProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number
@@ -486,7 +458,6 @@ const ProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Date of Birth
@@ -505,7 +476,6 @@ const ProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Location
@@ -524,7 +494,6 @@ const ProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Occupation
@@ -544,7 +513,6 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
             </div>
-
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Education
@@ -563,7 +531,6 @@ const ProfilePage: React.FC = () => {
                 </p>
               )}
             </div>
-
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Bio
@@ -583,7 +550,6 @@ const ProfilePage: React.FC = () => {
                 </p>
               )}
             </div>
-
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Interests
@@ -599,7 +565,6 @@ const ProfilePage: React.FC = () => {
                 ))}
               </div>
             </div>
-
             {/* Stream Selection Section */}
             {selectedStream && (
               <div className="mt-6 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg">
@@ -614,7 +579,6 @@ const ProfilePage: React.FC = () => {
                     </div>
                   )}
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">
@@ -634,7 +598,6 @@ const ProfilePage: React.FC = () => {
                       </div>
                     )}
                   </div>
-
                   {isLocked && !changeRequested && (
                     <button
                       onClick={() => setShowStreamChangeDialog(true)}
@@ -645,7 +608,6 @@ const ProfilePage: React.FC = () => {
                     </button>
                   )}
                 </div>
-
                 {isLocked && (
                   <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                     <div className="flex items-start gap-2">
@@ -661,7 +623,6 @@ const ProfilePage: React.FC = () => {
             )}
           </motion.div>
         )}
-
         {/* Preferences Tab */}
         {activeTab === 'preferences' && (
           <motion.div
@@ -672,7 +633,6 @@ const ProfilePage: React.FC = () => {
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
               Preferences
             </h2>
-
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -703,7 +663,6 @@ const ProfilePage: React.FC = () => {
                   </label>
                 </div>
               </div>
-
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Privacy
@@ -720,7 +679,6 @@ const ProfilePage: React.FC = () => {
                   </span>
                 </label>
               </div>
-
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Appearance
@@ -735,7 +693,6 @@ const ProfilePage: React.FC = () => {
                   <option value="system">System</option>
                 </select>
               </div>
-
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Language
@@ -755,7 +712,6 @@ const ProfilePage: React.FC = () => {
             </div>
           </motion.div>
         )}
-
         {/* Security Tab */}
         {activeTab === 'security' && (
           <motion.div
@@ -767,7 +723,6 @@ const ProfilePage: React.FC = () => {
               <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
                 Security Settings
               </h2>
-
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div>
@@ -785,7 +740,6 @@ const ProfilePage: React.FC = () => {
                     Change Password
                   </button>
                 </div>
-
                 {showPasswordChange && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -817,7 +771,6 @@ const ProfilePage: React.FC = () => {
                         </button>
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         New Password
@@ -843,7 +796,6 @@ const ProfilePage: React.FC = () => {
                         </button>
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Confirm New Password
@@ -869,7 +821,6 @@ const ProfilePage: React.FC = () => {
                         </button>
                       </div>
                     </div>
-
                     <div className="flex space-x-3">
                       <button
                         onClick={handleChangePassword}
@@ -894,7 +845,6 @@ const ProfilePage: React.FC = () => {
                     </div>
                   </motion.div>
                 )}
-
                 <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white">
@@ -908,7 +858,6 @@ const ProfilePage: React.FC = () => {
                     Enable
                   </button>
                 </div>
-
                 <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg">
                   <div>
                     <h3 className="text-sm font-medium text-red-900 dark:text-red-400">
@@ -926,7 +875,6 @@ const ProfilePage: React.FC = () => {
             </div>
           </motion.div>
         )}
-
         {/* Activity Tab */}
         {activeTab === 'activity' && (
           <motion.div
@@ -937,7 +885,6 @@ const ProfilePage: React.FC = () => {
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
               Recent Activity
             </h2>
-
             <div className="space-y-4">
               {[
                 { action: 'Searched for medical colleges', time: '2 hours ago', icon: BookOpen },
@@ -960,7 +907,6 @@ const ProfilePage: React.FC = () => {
           </motion.div>
         )}
       </div>
-
       {/* Request Stream Change Dialog */}
       {selectedStream && (
         <RequestStreamChangeDialog
@@ -972,5 +918,4 @@ const ProfilePage: React.FC = () => {
     </div>
   );
 };
-
 export default ProfilePage;

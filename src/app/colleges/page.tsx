@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, GraduationCap, Sparkles, ArrowRight } from 'lucide-react';
@@ -19,11 +16,9 @@ import LoadMoreButton from '@/components/ui/LoadMoreButton';
 import { Vortex } from '@/components/ui/vortex';
 import LightVortex from '@/components/ui/LightVortex';
 import { College } from '@/types';
-
 interface CollegeWithCourseCount extends College {
   course_count?: number;
 }
-
 interface Course {
   id?: string;
   name?: string;
@@ -32,7 +27,6 @@ interface Course {
   program?: string;
   total_seats?: number;
 }
-
 const CollegesPage: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [viewType, setViewType] = useState<ViewType>('card');
@@ -49,7 +43,6 @@ const CollegesPage: React.FC = () => {
   
   // Use stream-aware data service
   const { colleges: streamColleges, currentStream, streamConfig } = useStreamDataService();
-
   // Data state
   const [colleges, setColleges] = useState<CollegeWithCourseCount[]>([]);
   const [filters, setFilters] = useState({});
@@ -57,13 +50,11 @@ const CollegesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentSearchQuery, setCurrentSearchQuery] = useState('');
-
   // Modal state
   const [selectedCollege, setSelectedCollege] = useState<CollegeWithCourseCount | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCollegeCourses, setSelectedCollegeCourses] = useState<Course[]>([]);
   const [isModalLoading, setIsModalLoading] = useState(false);
-
   // Pagination state
   const [pagination, setPagination] = useState({
     page: 1,
@@ -72,7 +63,6 @@ const CollegesPage: React.FC = () => {
     totalItems: 0,
     hasNext: true
   });
-
   // Mock data for demonstration
   const mockColleges: College[] = [
     {
@@ -178,27 +168,23 @@ const CollegesPage: React.FC = () => {
       updated_at: new Date().toISOString()
     }
   ];
-
   const mockCourses: Course[] = [
     { id: '1', course_name: 'MBBS', program: 'UG', total_seats: 100 },
     { id: '2', course_name: 'MD - General Medicine', program: 'PG', total_seats: 15 },
     { id: '3', course_name: 'MS - General Surgery', program: 'PG', total_seats: 12 },
     { id: '4', course_name: 'DNB - Cardiology', program: 'DNB', total_seats: 5 }
   ];
-
   useEffect(() => {
     const timer = setTimeout(() => {
         setIsLoaded(true);
     }, 50);
     return () => clearTimeout(timer);
   }, []);
-
   // Load colleges
   const loadColleges = useCallback(async (newFilters = {}, newPage = 1, isAppend = false) => {
     if (currentSearchQuery && currentSearchQuery.trim() !== '') {
       return;
     }
-
     try {
       if (isAppend) {
         setIsLoadingMore(true);
@@ -212,7 +198,6 @@ const CollegesPage: React.FC = () => {
         limit: pagination.limit.toString(),
         ...newFilters
       });
-
       // Call colleges API (updated to use Supabase endpoint)
       const response = await fetch(`/api/colleges?${params}`);
       if (!response.ok) {
@@ -282,23 +267,19 @@ const CollegesPage: React.FC = () => {
       setIsLoadingMore(false);
     }
   }, [currentSearchQuery, isLoading, isLoadingMore, pagination.limit]);
-
   // Load more colleges
   const loadMoreColleges = useCallback(() => {
     if (isLoading || isLoadingMore || !pagination.hasNext || isModalOpen) {
       return;
     }
-
     const nextPage = pagination.page + 1;
     loadColleges(appliedFilters, nextPage, true);
   }, [isLoading, isLoadingMore, pagination.hasNext, pagination.page, appliedFilters, loadColleges, isModalOpen]);
-
   // Handle opening college details modal
   const handleOpenModal = useCallback(async (college: College) => {
     setSelectedCollege(college);
     setIsModalLoading(true);
     setIsModalOpen(true);
-
     try {
       // Fetch college details with courses (updated to use Supabase endpoint)
       const response = await fetch(`/api/colleges/${college.id}`);
@@ -320,7 +301,6 @@ const CollegesPage: React.FC = () => {
       setIsModalLoading(false);
     }
   }, []);
-
   // Handle closing college details modal
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
@@ -328,19 +308,16 @@ const CollegesPage: React.FC = () => {
     setSelectedCollegeCourses([]);
     setIsModalLoading(false);
   }, []);
-
   // Handle filter changes
   const handleFilterChange = async (newFilters: Record<string, any>) => {
     setAppliedFilters(newFilters);
     loadColleges(newFilters, 1);
   };
-
   // Handle filter clearing
   const handleClearFilters = async () => {
     setAppliedFilters({});
     loadColleges({}, 1);
   };
-
   // Handle search results from UnifiedSearchBar - stabilized with useCallback
   const handleSearchResultsArray = useCallback(async (results: any[]) => {
     if (results && results.length > 0) {
@@ -371,7 +348,6 @@ const CollegesPage: React.FC = () => {
       }, 0);
     }
   }, [loadColleges]);
-
   // Initial load
   const hasLoaded = useRef(false);
   useEffect(() => {
@@ -380,7 +356,6 @@ const CollegesPage: React.FC = () => {
       loadColleges();
     }
   }, []);
-
   // Handle URL parameters for opening specific college modal
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -397,7 +372,6 @@ const CollegesPage: React.FC = () => {
       }
     }
   }, [colleges, handleOpenModal]);
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background */}
@@ -431,7 +405,6 @@ const CollegesPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 z-10"></div>
         </LightVortex>
       )}
-
     <AnimatePresence>
       {!showContent ? (
         <motion.div
@@ -455,7 +428,6 @@ const CollegesPage: React.FC = () => {
             >
               Discover Your Perfect College
             </motion.div>
-
             {/* Main Title */}
             <motion.h1
               className={`text-6xl md:text-8xl font-bold mb-2 transition-colors duration-300 ${
@@ -542,7 +514,6 @@ const CollegesPage: React.FC = () => {
                   >
               Explore Colleges
             </motion.h1>
-
             {/* Subtitle */}
             <motion.p
               className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto ${
@@ -556,7 +527,6 @@ const CollegesPage: React.FC = () => {
             >
               Discover top medical colleges across India with detailed information, courses, and seat availability
             </motion.p>
-
             {/* Advanced Search Bar */}
             <motion.div
               className="max-w-3xl mx-auto mb-8"
@@ -570,7 +540,6 @@ const CollegesPage: React.FC = () => {
                 placeholder="Search medical colleges with unified AI intelligence..."
               />
             </motion.div>
-
             {/* Intelligent Filters */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -587,7 +556,6 @@ const CollegesPage: React.FC = () => {
                 type="colleges"
               />
             </motion.div>
-
             {/* View Toggle */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -601,7 +569,6 @@ const CollegesPage: React.FC = () => {
                 isDarkMode={isDarkMode}
               />
             </motion.div>
-
             {/* Colleges Display */}
             <motion.div
               className="w-full mb-16"
@@ -681,7 +648,6 @@ const CollegesPage: React.FC = () => {
                 </div>
               )}
             </motion.div>
-
               {/* Infinite Scroll Trigger */}
               {colleges.length > 0 && (
                 <LoadMoreButton
@@ -690,7 +656,6 @@ const CollegesPage: React.FC = () => {
                   isLoading={isLoadingMore}
                 />
               )}
-
             {/* End of content indicator */}
             {colleges.length > 0 && !pagination.hasNext && (
               <div className="col-span-full text-center py-8">
@@ -703,7 +668,6 @@ const CollegesPage: React.FC = () => {
           </div>
         </main>
         </div>
-
         {/* College Details Modal */}
           <CollegeDetailsModal
             isOpen={isModalOpen}
@@ -712,7 +676,6 @@ const CollegesPage: React.FC = () => {
         courses={selectedCollegeCourses}
         isLoading={isModalLoading}
           />
-
           </div>
         </motion.div>
       )}
@@ -720,5 +683,4 @@ const CollegesPage: React.FC = () => {
     </div>
   );
 };
-
 export default CollegesPage;

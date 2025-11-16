@@ -1,12 +1,8 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import FavoritesManager from '@/components/favorites/FavoritesManager';
-
 const FavoritesPage: React.FC = () => {
   return (
     <Layout>
@@ -18,5 +14,4 @@ const FavoritesPage: React.FC = () => {
     </Layout>
   );
 };
-
 export default FavoritesPage;

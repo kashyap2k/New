@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Brain, Zap, Target, TrendingUp, Award, MessageSquare } from 'lucide-react';
@@ -13,27 +10,22 @@ import LightVortex from '@/components/ui/LightVortex';
 import SmartChat from '@/components/smart/SmartChat';
 import PremiumGate from '@/components/premium/PremiumGate';
 import { FEATURE_KEYS } from '@/config/premium';
-
 const SmartPage: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { isDarkMode } = useTheme();
   const { canUseFeature, incrementFeatureUsage } = usePremium();
-
   // Hero/Content transition state
   const [showContent, setShowContent] = useState(false);
-
   // Handle "Start Exploring" button click
   const handleStartExploring = () => {
     setShowContent(true);
   };
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 300);
     return () => clearTimeout(timer);
   }, []);
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background based on theme */}
@@ -67,7 +59,6 @@ const SmartPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-purple-50/30 to-pink-50/40 z-10"></div>
         </LightVortex>
       )}
-
       {/* Section 1: Hero Section */}
       <AnimatePresence mode="wait">
         {!showContent && (
@@ -120,7 +111,6 @@ const SmartPage: React.FC = () => {
                 );
               })}
             </div>
-
             <main className="flex items-center justify-center px-4 sm:px-8 py-8 md:py-12 w-full relative z-20">
               <div className="text-center max-w-4xl">
                 {/* Primary Hook */}
@@ -136,7 +126,6 @@ const SmartPage: React.FC = () => {
                 >
                   AI That Actually Understands You
                 </motion.div>
-
                 {/* Main Title */}
                 <motion.h1
                   className={`text-6xl md:text-8xl font-bold mb-2 transition-colors duration-300 ${
@@ -148,7 +137,6 @@ const SmartPage: React.FC = () => {
                 >
                   Smart Predictor
                 </motion.h1>
-
                 {/* Secondary Hook */}
                 <motion.p
                   className={`text-xl md:text-2xl mb-8 max-w-2xl mx-auto transition-colors duration-300 ${
@@ -162,7 +150,6 @@ const SmartPage: React.FC = () => {
                 >
                   Ask in Plain English. Get Precise Predictions.
                 </motion.p>
-
                 {/* Stats Row */}
                 <motion.div
                   className="flex justify-center gap-8 mb-8"
@@ -185,7 +172,6 @@ const SmartPage: React.FC = () => {
                     </div>
                   ))}
                 </motion.div>
-
                 {/* Call to Action */}
                 <motion.div
                   className="mt-8"
@@ -219,13 +205,11 @@ const SmartPage: React.FC = () => {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                 </motion.div>
-
               </div>
             </main>
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Section 2: Content Section */}
       <AnimatePresence mode="wait">
         {showContent && (
@@ -266,7 +250,6 @@ const SmartPage: React.FC = () => {
                     Chat naturally and get instant, probability-based college recommendations
                   </p>
                 </motion.div>
-
                 {/* Chat Container */}
                 <motion.div
                   className={`backdrop-blur-md rounded-2xl border-2 overflow-hidden ${
@@ -283,7 +266,6 @@ const SmartPage: React.FC = () => {
                     <SmartChat />
                   </PremiumGate>
                 </motion.div>
-
                 {/* Features Grid */}
                 <motion.div
                   className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6"
@@ -341,7 +323,6 @@ const SmartPage: React.FC = () => {
                     );
                   })}
                 </motion.div>
-
                 {/* Example Queries */}
                 <motion.div
                   className={`mt-8 backdrop-blur-sm rounded-2xl p-6 border ${
@@ -385,12 +366,10 @@ const SmartPage: React.FC = () => {
                 </motion.div>
               </div>
             </motion.section>
-
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
-
 export default SmartPage;

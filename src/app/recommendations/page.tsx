@@ -1,12 +1,8 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import dynamic from 'next/dynamic';
-
 const RecommendationEngine = dynamic(() => import('@/components/recommendations/RecommendationEngine'), {
   loading: () => (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -15,7 +11,6 @@ const RecommendationEngine = dynamic(() => import('@/components/recommendations/
   ),
   ssr: false
 });
-
 const RecommendationsPage: React.FC = () => {
   return (
     <Layout>
@@ -27,5 +22,4 @@ const RecommendationsPage: React.FC = () => {
     </Layout>
   );
 };
-
 export default RecommendationsPage;

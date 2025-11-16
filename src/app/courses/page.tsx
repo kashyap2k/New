@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, GraduationCap, Search, Sparkles, ArrowRight } from 'lucide-react';
@@ -14,7 +11,6 @@ import CourseCollegesModal from '@/components/modals/CourseCollegesModal';
 import InfiniteScrollTrigger from '@/components/ui/InfiniteScrollTrigger';
 import { Vortex } from '@/components/ui/vortex';
 import LightVortex from '@/components/ui/LightVortex';
-
 interface Course {
   id?: string;
   course_name?: string;
@@ -28,7 +24,6 @@ interface Course {
   college_names?: string;
   colleges?: any[];
 }
-
 interface College {
   id: string;
   name: string;
@@ -37,12 +32,10 @@ interface College {
   management_type?: string;
   college_type?: string;
 }
-
 const CoursesPage: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { isDarkMode } = useTheme();
   const { isAuthenticated } = useAuth();
-
   // Hero/Content transition state
   const [showContent, setShowContent] = useState(false);
   
@@ -50,7 +43,6 @@ const CoursesPage: React.FC = () => {
   const handleStartExploring = () => {
     setShowContent(true);
   };
-
   // Filter state
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedStream, setSelectedStream] = useState('all');
@@ -77,7 +69,6 @@ const CoursesPage: React.FC = () => {
     totalItems: 0,
     hasNext: true
   });
-
   // Mock data for demonstration
   const mockCourses: Course[] = [
     {
@@ -166,20 +157,17 @@ const CoursesPage: React.FC = () => {
       ]
     }
   ];
-
   const mockColleges: College[] = [
     { id: '1', name: 'AIIMS Delhi', state: 'Delhi', management_type: 'GOVERNMENT', college_type: 'MEDICAL' },
     { id: '2', name: 'JIPMER Puducherry', state: 'Puducherry', management_type: 'GOVERNMENT', college_type: 'MEDICAL' },
     { id: '3', name: 'KGMU Lucknow', state: 'Uttar Pradesh', management_type: 'GOVERNMENT', college_type: 'MEDICAL' }
   ];
-
   useEffect(() => {
     const timer = setTimeout(() => {
         setIsLoaded(true);
     }, 50);
     return () => clearTimeout(timer);
   }, []);
-
   // Load courses
   const loadCourses = useCallback(async (newFilters = {}, newPage = 1, isAppend = false) => {
     try {
@@ -188,14 +176,12 @@ const CoursesPage: React.FC = () => {
       } else {
         setIsLoading(true);
       }
-
       // Build query parameters
       const params = new URLSearchParams({
         page: newPage.toString(),
         limit: '24',
         ...newFilters
       });
-
       // Call courses API (updated to use Supabase endpoint)
       const response = await fetch(`/api/courses?${params}`);
       if (!response.ok) {
@@ -234,17 +220,14 @@ const CoursesPage: React.FC = () => {
       setIsLoadingMore(false);
     }
   }, [selectedStream, selectedBranch]);
-
   // Load more courses
   const loadMoreCourses = useCallback(() => {
     if (isLoading || isLoadingMore || !pagination.hasNext) {
       return;
     }
-
     const nextPage = pagination.page + 1;
     loadCourses({}, nextPage, true);
   }, [isLoading, isLoadingMore, pagination.hasNext, pagination.page, loadCourses]);
-
   // Handle stream change
   const handleStreamChange = (stream: string) => {
     setSelectedStream(stream);
@@ -255,7 +238,6 @@ const CoursesPage: React.FC = () => {
     loadCourses(filters, 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
   // Handle branch change
   const handleBranchChange = (branch: string) => {
     setSelectedBranch(branch);
@@ -266,7 +248,6 @@ const CoursesPage: React.FC = () => {
     loadCourses(filters, 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
   // Handle opening colleges modal
   const handleViewColleges = async (course: Course) => {
     setSelectedCourse(course);
@@ -287,7 +268,6 @@ const CoursesPage: React.FC = () => {
       setColleges([]);
     }
   };
-
   // Handle search results
   const handleSearchResults = async (searchResult: any) => {
     if (searchResult && searchResult.results && searchResult.results.length > 0) {
@@ -302,7 +282,6 @@ const CoursesPage: React.FC = () => {
         college_names: result.college_names || '',
         colleges: result.colleges || []
       }));
-
       const validSearchCourses = searchCourses.filter((course: any) => course.total_seats > 0);
       setCourses(validSearchCourses);
       setFilteredCourses(validSearchCourses);
@@ -317,12 +296,10 @@ const CoursesPage: React.FC = () => {
       loadCourses({}, 1);
     }
   };
-
   // Initial load
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
-
   const getStreamIcon = (stream: string) => {
     switch (stream) {
       case 'MEDICAL':
@@ -335,7 +312,6 @@ const CoursesPage: React.FC = () => {
         return BookOpen;
     }
   };
-
   const getStreamColor = (stream: string) => {
     switch (stream) {
       case 'MEDICAL':
@@ -348,14 +324,12 @@ const CoursesPage: React.FC = () => {
         return 'from-gray-500 to-gray-600';
     }
   };
-
   const streams = [
     { value: 'all', label: 'All Streams' },
     { value: 'MEDICAL', label: 'Medical' },
     { value: 'DENTAL', label: 'Dental' },
     { value: 'DNB', label: 'DNB' }
   ];
-
   const branches = [
     { value: 'all', label: 'All Branches' },
     { value: 'UG', label: 'UG (Undergraduate)' },
@@ -363,7 +337,6 @@ const CoursesPage: React.FC = () => {
     { value: 'PG', label: 'PG (MD/MS/MD&MS)' },
     { value: 'SS', label: 'SS (Super Specialty)' }
   ];
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background */}
@@ -397,7 +370,6 @@ const CoursesPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 via-blue-50/20 to-purple-50/30 z-10"></div>
         </LightVortex>
       )}
-
     <AnimatePresence>
       {!showContent ? (
         <motion.div
@@ -421,7 +393,6 @@ const CoursesPage: React.FC = () => {
             >
               Find Your Dream Course
             </motion.div>
-
             {/* Main Title */}
             <motion.h1
               className={`text-6xl md:text-8xl font-bold mb-2 transition-colors duration-300 ${
@@ -508,7 +479,6 @@ const CoursesPage: React.FC = () => {
                   >
               Explore Courses
             </motion.h1>
-
             {/* Subtitle */}
             <motion.p
               className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto transition-colors duration-300 ${
@@ -522,7 +492,6 @@ const CoursesPage: React.FC = () => {
             >
               Explore comprehensive medical courses and see which colleges offer them with detailed seat information
             </motion.p>
-
             {/* Advanced Search Bar */}
             <motion.div
               className="max-w-3xl mx-auto mb-16"
@@ -537,7 +506,6 @@ const CoursesPage: React.FC = () => {
                 showAIInsight={true}
               />
             </motion.div>
-
             {/* Stream and Branch Filters */}
             <motion.div
               className="flex flex-col gap-8 mb-16"
@@ -584,7 +552,6 @@ const CoursesPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-
               {/* Branch Filters */}
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">Filter by Branch</h3>
@@ -631,7 +598,6 @@ const CoursesPage: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-
             {/* Search Status */}
             {filteredCourses.length !== courses.length && (
               <motion.div
@@ -711,7 +677,6 @@ const CoursesPage: React.FC = () => {
                           isDarkMode ? 'text-white' : 'text-gray-900'
                         }`}>{course.course_name || course.name || 'Unknown Course'}</h3>
                       </div>
-
                       <div className="space-y-2 mb-4">
                         <div className={`flex items-center justify-between text-sm ${
                           isDarkMode ? 'text-white/80' : 'text-gray-600'
@@ -733,7 +698,6 @@ const CoursesPage: React.FC = () => {
                           <span>Duration: {course.duration || 'N/A'} years</span>
                         </div>
                       </div>
-
                       {/* Expandable Colleges Section */}
                       <div className="mb-4">
                         <button
@@ -766,7 +730,6 @@ const CoursesPage: React.FC = () => {
                   </p>
                 </div>
               )}
-
               {/* Skeleton cards for loading more */}
               {isLoadingMore && (
                 <>
@@ -793,7 +756,6 @@ const CoursesPage: React.FC = () => {
                 </>
               )}
             </motion.div>
-
               {/* Infinite Scroll Trigger */}
             {filteredCourses.length > 0 && pagination.hasNext && (
                 <InfiniteScrollTrigger
@@ -804,7 +766,6 @@ const CoursesPage: React.FC = () => {
                 rootMargin="200px"
               />
             )}
-
             {/* End of content indicator */}
             {filteredCourses.length > 0 && !pagination.hasNext && (
               <div className="col-span-full text-center py-8">
@@ -817,7 +778,6 @@ const CoursesPage: React.FC = () => {
           </div>
         </main>
         </div>
-
         {/* Course Colleges Modal */}
           <CourseCollegesModal
         isOpen={isCollegesModalOpen}
@@ -825,7 +785,6 @@ const CoursesPage: React.FC = () => {
             course={selectedCourse}
         colleges={colleges}
           />
-
           </div>
         </motion.div>
       )}
@@ -833,5 +792,4 @@ const CoursesPage: React.FC = () => {
     </div>
   );
 };
-
 export default CoursesPage;

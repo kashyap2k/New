@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Plus, Trophy, Users, Clock, Zap, Sparkles, ArrowRight } from 'lucide-react';
@@ -17,7 +14,6 @@ import AchievementToast from '@/components/compare/AchievementToast';
 import PremiumGate from '@/components/premium/PremiumGate';
 import { FEATURE_KEYS } from '@/config/premium';
 import './compare.css';
-
 interface College {
   id: string;
   name: string;
@@ -33,7 +29,6 @@ interface College {
   totalSeats: number;
   acceptanceRate: number;
 }
-
 const ComparePage: React.FC = () => {
   const [selectedColleges, setSelectedColleges] = useState<College[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -52,18 +47,15 @@ const ComparePage: React.FC = () => {
   const handleStartExploring = () => {
     setShowContent(true);
   };
-
   const maxColleges = 4;
   const currentStep = selectedColleges.length + 1;
   const totalSteps = maxColleges + 1;
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 300);
     return () => clearTimeout(timer);
   }, []);
-
   // Achievement system
   useEffect(() => {
     if (selectedColleges.length === 2) {
@@ -72,7 +64,6 @@ const ComparePage: React.FC = () => {
       setAchievements(prev => [...prev, 'Maximum Comparison!']);
     }
   }, [selectedColleges.length]);
-
   const handleCollegeSelect = (college: College, index: number) => {
     setSelectedColleges(prev => {
       const newColleges = [...prev];
@@ -80,38 +71,30 @@ const ComparePage: React.FC = () => {
       return newColleges;
     });
   };
-
   const handleCollegeRemove = (index: number) => {
     setSelectedColleges(prev => prev.filter((_, i) => i !== index));
   };
-
   const handleCompare = async () => {
     if (selectedColleges.length < 2) return;
-
     // Check if user can use the comparison feature
     const canUse = await canUseFeature(FEATURE_KEYS.COLLEGE_COMPARISONS);
     if (!canUse) {
       // Premium gate will be shown automatically
       return;
     }
-
     // Increment usage counter
     await incrementFeatureUsage(FEATURE_KEYS.COLLEGE_COMPARISONS);
-
     setShowResults(true);
   };
-
   const handleReset = () => {
     setSelectedColleges([]);
     setShowResults(false);
   };
-
   const handleFindMatch = () => {
     // TODO: Implement AI-powered college recommendation flow
     // This should open a questionnaire/quiz modal
     alert('Find My Match feature coming soon! This will help you discover colleges based on your preferences.');
   };
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background based on theme */}
@@ -145,7 +128,6 @@ const ComparePage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 z-10"></div>
         </LightVortex>
       )}
-
       {/* Section 1: Hero Section */}
       <AnimatePresence mode="wait">
         {!showContent && (
@@ -171,7 +153,6 @@ const ComparePage: React.FC = () => {
             >
               Stop Guessing. Start Comparing.
             </motion.div>
-
             {/* Main Title */}
             <motion.h1
               className={`text-6xl md:text-8xl font-bold mb-2 transition-colors duration-300 ${
@@ -183,7 +164,6 @@ const ComparePage: React.FC = () => {
             >
               Compare Colleges
             </motion.h1>
-
             {/* Secondary Hook */}
             <motion.p
               className={`text-xl md:text-2xl mb-8 max-w-2xl mx-auto transition-colors duration-300 ${
@@ -197,7 +177,6 @@ const ComparePage: React.FC = () => {
             >
               Compare up to 4 colleges side-by-side and find your perfect match
             </motion.p>
-
             {/* Call to Action */}
             <motion.div
               className="mt-8"
@@ -231,13 +210,11 @@ const ComparePage: React.FC = () => {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </motion.div>
-
           </div>
             </main>
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Section 2: Content Section */}
       <AnimatePresence mode="wait">
         {showContent && (
@@ -278,7 +255,6 @@ const ComparePage: React.FC = () => {
                 Choose up to 4 colleges to get detailed comparison
               </p>
             </motion.div>
-
             {/* External Filters */}
             <motion.div
               className={`backdrop-blur-md rounded-2xl p-6 border-2 mb-8 ${
@@ -311,7 +287,6 @@ const ComparePage: React.FC = () => {
                     <option value="ayush">AYUSH</option>
                   </select>
                 </div>
-
                 {/* Management Filter */}
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}>
@@ -334,7 +309,6 @@ const ComparePage: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-
             {/* College Selectors Grid - Progressive Selection */}
             <motion.div
               className={`backdrop-blur-md rounded-2xl p-6 border-2 ${
@@ -374,7 +348,6 @@ const ComparePage: React.FC = () => {
                     </motion.button>
                   </motion.div>
                 )}
-
                 {/* College Cards Grid - Always show at least 2 empty cards initially */}
                 <div className={`grid gap-6 ${
                   selectedColleges.length <= 2 
@@ -415,7 +388,6 @@ const ComparePage: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-
             {/* Action Buttons */}
             <motion.div 
               className="flex justify-center gap-4 mt-8"
@@ -458,7 +430,6 @@ const ComparePage: React.FC = () => {
             </motion.div>
           </div>
         </motion.section>
-
       {/* Comparison Results */}
       <AnimatePresence>
         {showResults && selectedColleges.length >= 2 && (
@@ -469,7 +440,6 @@ const ComparePage: React.FC = () => {
           />
         )}
       </AnimatePresence>
-
         {/* Achievement Toasts */}
         <AnimatePresence>
           {achievements.map((achievement, index) => (
@@ -480,12 +450,10 @@ const ComparePage: React.FC = () => {
             />
           ))}
         </AnimatePresence>
-
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
-
 export default ComparePage;

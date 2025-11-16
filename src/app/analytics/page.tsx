@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, PieChart as PieChartIcon, TrendingUp, Users, Award, ArrowLeft, Sparkles, Filter } from 'lucide-react';
@@ -30,13 +27,11 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-
 const AnalyticsPage: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [showContent, setShowContent] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedStream, setSelectedStream] = useState<string>('MBBS');
-
   // Sample data for charts
   const trendData = [
     { year: '2019', General: 50, OBC: 150, SC: 450, ST: 850, EWS: 100 },
@@ -46,7 +41,6 @@ const AnalyticsPage: React.FC = () => {
     { year: '2023', General: 40, OBC: 130, SC: 410, ST: 810, EWS: 80 },
     { year: '2024', General: 38, OBC: 125, SC: 400, ST: 800, EWS: 75 }
   ];
-
   const seatDistributionData = [
     { name: 'General', value: 50.2, color: '#3b82f6' },
     { name: 'OBC', value: 27.5, color: '#8b5cf6' },
@@ -54,13 +48,11 @@ const AnalyticsPage: React.FC = () => {
     { name: 'ST', value: 7.5, color: '#f59e0b' },
     { name: 'EWS', value: 10.0, color: '#ec4899' }
   ];
-
   const collegeTypeData = [
     { type: 'Government', count: 547, color: '#3b82f6' },
     { type: 'Private', count: 1234, color: '#8b5cf6' },
     { type: 'Deemed', count: 623, color: '#10b981' }
   ];
-
   const popularCollegesData = [
     { college: 'AIIMS Delhi', applications: 45678, color: '#3b82f6' },
     { college: 'JIPMER Puducherry', applications: 38945, color: '#8b5cf6' },
@@ -68,7 +60,6 @@ const AnalyticsPage: React.FC = () => {
     { college: 'AFMC Pune', applications: 28934, color: '#f59e0b' },
     { college: 'KGMU Lucknow', applications: 25678, color: '#ec4899' }
   ];
-
   const studentsLikeYouData = [
     { college: 'AIIMS Bhubaneswar', branch: 'MBBS', probability: 92, category: 'Safe', rank: 1245 },
     { college: 'JIPMER Karaikal', branch: 'MBBS', probability: 88, category: 'Safe', rank: 1450 },
@@ -77,7 +68,6 @@ const AnalyticsPage: React.FC = () => {
     { college: 'MAMC Delhi', branch: 'MBBS', probability: 52, category: 'Reach', rank: 3200 },
     { college: 'LHMC Delhi', branch: 'MBBS', probability: 45, category: 'Reach', rank: 3650 }
   ];
-
   const categoryPerformanceData = [
     { metric: 'Rank', value: 85 },
     { metric: 'Documents', value: 60 },
@@ -86,7 +76,6 @@ const AnalyticsPage: React.FC = () => {
     { metric: 'College Research', value: 90 },
     { metric: 'Backup Options', value: 55 }
   ];
-
   const floatingIcons = [
     { Icon: BarChart3, color: 'from-blue-500 to-cyan-500', delay: 0 },
     { Icon: PieChartIcon, color: 'from-purple-500 to-pink-500', delay: 0.2 },
@@ -94,7 +83,6 @@ const AnalyticsPage: React.FC = () => {
     { Icon: Users, color: 'from-orange-500 to-red-500', delay: 0.6 },
     { Icon: Award, color: 'from-pink-500 to-rose-500', delay: 0.8 }
   ];
-
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -110,7 +98,6 @@ const AnalyticsPage: React.FC = () => {
     }
     return null;
   };
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {isDarkMode ? (
@@ -143,7 +130,6 @@ const AnalyticsPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30 z-10"></div>
         </LightVortex>
       )}
-
       <AnimatePresence mode="wait">
         {!showContent ? (
           <motion.div
@@ -181,7 +167,6 @@ const AnalyticsPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -194,7 +179,6 @@ const AnalyticsPage: React.FC = () => {
               >
                 Analytics Hub
               </motion.h1>
-
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -207,7 +191,6 @@ const AnalyticsPage: React.FC = () => {
               >
                 Data-Driven Insights for Smarter Decisions
               </motion.p>
-
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -233,7 +216,6 @@ const AnalyticsPage: React.FC = () => {
                   </div>
                 ))}
               </motion.div>
-
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -277,7 +259,6 @@ const AnalyticsPage: React.FC = () => {
                   <ArrowLeft className="w-4 h-4" />
                   Back to Hero
                 </button>
-
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <h1 className={`text-4xl md:text-5xl font-bold mb-3 ${
@@ -292,7 +273,6 @@ const AnalyticsPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-
                 {/* Filters */}
                 <div className={`backdrop-blur-md rounded-2xl border-2 p-4 flex flex-wrap gap-4 ${
                   isDarkMode ? 'bg-white/10 border-white/20' : 'bg-white/80 border-gray-200/60'
@@ -332,7 +312,6 @@ const AnalyticsPage: React.FC = () => {
                   </select>
                 </div>
               </motion.div>
-
               <div className="space-y-8">
                 {/* Cutoff Trend Analysis */}
                 <motion.div
@@ -393,7 +372,6 @@ const AnalyticsPage: React.FC = () => {
                     </AreaChart>
                   </ResponsiveContainer>
                 </motion.div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Seat Distribution */}
                   <motion.div
@@ -437,7 +415,6 @@ const AnalyticsPage: React.FC = () => {
                       </PieChart>
                     </ResponsiveContainer>
                   </motion.div>
-
                   {/* College Type Distribution */}
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
@@ -475,7 +452,6 @@ const AnalyticsPage: React.FC = () => {
                     </ResponsiveContainer>
                   </motion.div>
                 </div>
-
                 {/* Popular Colleges */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -512,7 +488,6 @@ const AnalyticsPage: React.FC = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 </motion.div>
-
                 {/* Students Like You */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -596,7 +571,6 @@ const AnalyticsPage: React.FC = () => {
                     ))}
                   </div>
                 </motion.div>
-
                 {/* Counselling Readiness Radar */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -631,12 +605,10 @@ const AnalyticsPage: React.FC = () => {
                 </motion.div>
               </div>
             </div>
-
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
-
 export default AnalyticsPage;

@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -43,7 +40,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-
 const SettingsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { preferences, loading, updatePreference, resetPreferences, exportPreferences, importPreferences } = useUserPreferences();
@@ -53,12 +49,10 @@ const SettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [importData, setImportData] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
-
   if (!isAuthenticated) {
     router.push('/login');
     return null;
   }
-
   const handlePreferenceUpdate = async (category: keyof typeof preferences, updates: any) => {
     try {
       setSaving(true);
@@ -69,7 +63,6 @@ const SettingsPage: React.FC = () => {
       setSaving(false);
     }
   };
-
   const handleExport = () => {
     const data = exportPreferences();
     const blob = new Blob([data], { type: 'application/json' });
@@ -82,7 +75,6 @@ const SettingsPage: React.FC = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-
   const handleImport = async () => {
     try {
       setSaving(true);
@@ -96,7 +88,6 @@ const SettingsPage: React.FC = () => {
       setSaving(false);
     }
   };
-
   const handleReset = async () => {
     if (confirm('Are you sure you want to reset all preferences to default? This action cannot be undone.')) {
       try {
@@ -110,7 +101,6 @@ const SettingsPage: React.FC = () => {
       }
     }
   };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 flex items-center justify-center">
@@ -118,7 +108,6 @@ const SettingsPage: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -163,7 +152,6 @@ const SettingsPage: React.FC = () => {
             </div>
           </div>
         </motion.div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Navigation Sidebar */}
           <div className="lg:col-span-1">
@@ -190,7 +178,6 @@ const SettingsPage: React.FC = () => {
               ))}
             </nav>
           </div>
-
           {/* Settings Content */}
           <div className="lg:col-span-3">
             {/* General Settings */}
@@ -232,7 +219,6 @@ const SettingsPage: React.FC = () => {
                         ))}
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Font Size
@@ -247,7 +233,6 @@ const SettingsPage: React.FC = () => {
                         <option value="large">Large</option>
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Density
@@ -262,7 +247,6 @@ const SettingsPage: React.FC = () => {
                         <option value="spacious">Spacious</option>
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Language
@@ -281,7 +265,6 @@ const SettingsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
                 {/* Content Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
@@ -304,7 +287,6 @@ const SettingsPage: React.FC = () => {
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-medium text-gray-900 dark:text-white">Autoplay Videos</h4>
@@ -320,7 +302,6 @@ const SettingsPage: React.FC = () => {
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Items per page
@@ -338,7 +319,6 @@ const SettingsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
                 {/* Dashboard Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
@@ -371,7 +351,6 @@ const SettingsPage: React.FC = () => {
                         ))}
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Default View
@@ -391,7 +370,6 @@ const SettingsPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
             {/* Notifications Settings */}
             {activeTab === 'notifications' && (
               <motion.div
@@ -433,7 +411,6 @@ const SettingsPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
             {/* Privacy Settings */}
             {activeTab === 'privacy' && (
               <motion.div
@@ -460,7 +437,6 @@ const SettingsPage: React.FC = () => {
                       <option value="friends">Friends Only</option>
                     </select>
                   </div>
-
                   {[
                     { key: 'dataSharing', label: 'Data Sharing', description: 'Allow anonymous data sharing for service improvements', icon: Database },
                     { key: 'analytics', label: 'Analytics', description: 'Help us improve by sharing usage analytics', icon: BarChart3 },
@@ -488,7 +464,6 @@ const SettingsPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
             {/* Accessibility Settings */}
             {activeTab === 'accessibility' && (
               <motion.div
@@ -529,7 +504,6 @@ const SettingsPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
             {/* Data & Storage Settings */}
             {activeTab === 'data' && (
               <motion.div
@@ -569,7 +543,6 @@ const SettingsPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                     Import/Export Settings
@@ -597,7 +570,6 @@ const SettingsPage: React.FC = () => {
             )}
           </div>
         </div>
-
         {/* Import Dialog */}
         {showImportDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -640,5 +612,4 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 };
-
 export default SettingsPage;

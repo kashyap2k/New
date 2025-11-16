@@ -16,13 +16,13 @@ interface TeamMember {
 interface Stat {
   number: string;
   label: string;
-  icon: any;
+  iconName: string;
 }
 
 interface Value {
   title: string;
   description: string;
-  icon: any;
+  iconName: string;
   color: string;
 }
 
@@ -31,6 +31,16 @@ interface AboutClientProps {
   stats: Stat[];
   values: Value[];
 }
+
+// Icon mapping to resolve icon names to components
+const iconMap: Record<string, any> = {
+  GraduationCap,
+  MapPin,
+  Shield,
+  Star,
+  Zap,
+  Target,
+};
 
 export default function AboutClient({ teamMembers, stats, values }: AboutClientProps) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -124,7 +134,7 @@ export default function AboutClient({ teamMembers, stats, values }: AboutClientP
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {stats.map((stat, index) => {
-                  const Icon = stat.icon;
+                  const Icon = iconMap[stat.iconName];
                   return (
                     <motion.div
                       key={index}
@@ -165,7 +175,7 @@ export default function AboutClient({ teamMembers, stats, values }: AboutClientP
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {values.map((value, index) => {
-                  const Icon = value.icon;
+                  const Icon = iconMap[value.iconName];
                   return (
                     <motion.div
                       key={index}

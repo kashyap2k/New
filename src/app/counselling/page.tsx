@@ -1,8 +1,5 @@
 'use client';
 
-
-export const dynamic = 'force-dynamic';
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, FileText, Calendar, Download, CheckCircle2, AlertCircle, BookOpen, GraduationCap } from 'lucide-react';
@@ -10,23 +7,19 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Vortex } from '@/components/ui/vortex';
 import LightVortex from '@/components/ui/LightVortex';
 import Link from 'next/link';
-
 const CounsellingPage: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { isDarkMode } = useTheme();
   const [showContent, setShowContent] = useState(false);
-
   const handleStartExploring = () => {
     setShowContent(true);
   };
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 300);
     return () => clearTimeout(timer);
   }, []);
-
   const counsellingBodies = [
     {
       id: 'mcc',
@@ -49,7 +42,6 @@ const CounsellingPage: React.FC = () => {
       features: ['Seat Matrix', 'Round Schedule', 'Document Checklist', 'Important Dates']
     }
   ];
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Dynamic Background */}
@@ -83,7 +75,6 @@ const CounsellingPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 via-blue-50/20 to-purple-50/30 z-10"></div>
         </LightVortex>
       )}
-
       {/* Section 1: Hero Section */}
       <AnimatePresence mode="wait">
         {!showContent && (
@@ -136,7 +127,6 @@ const CounsellingPage: React.FC = () => {
                 );
               })}
             </div>
-
             <main className="flex items-center justify-center px-4 sm:px-8 py-8 md:py-12 w-full relative z-20">
               <div className="text-center max-w-4xl">
                 {/* Primary Hook */}
@@ -152,7 +142,6 @@ const CounsellingPage: React.FC = () => {
                 >
                   Your Complete Counselling Companion
                 </motion.div>
-
                 {/* Main Title */}
                 <motion.h1
                   className={`text-6xl md:text-8xl font-bold mb-2 transition-colors duration-300 ${
@@ -164,7 +153,6 @@ const CounsellingPage: React.FC = () => {
                 >
                   Counselling Hub
                 </motion.h1>
-
                 {/* Secondary Hook */}
                 <motion.p
                   className={`text-xl md:text-2xl mb-8 max-w-2xl mx-auto transition-colors duration-300 ${
@@ -178,7 +166,6 @@ const CounsellingPage: React.FC = () => {
                 >
                   Everything You Need in One Place
                 </motion.p>
-
                 {/* Call to Action */}
                 <motion.div
                   className="mt-8"
@@ -212,13 +199,11 @@ const CounsellingPage: React.FC = () => {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                 </motion.div>
-
               </div>
             </main>
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Section 2: Content Section */}
       <AnimatePresence mode="wait">
         {showContent && (
@@ -258,7 +243,6 @@ const CounsellingPage: React.FC = () => {
                     Access documents, schedules, and important dates for your counselling
                   </p>
                 </motion.div>
-
                 {/* Counselling Body Cards */}
                 <motion.div
                   className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"
@@ -297,7 +281,6 @@ const CounsellingPage: React.FC = () => {
                             </div>
                             <ArrowRight className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                           </div>
-
                           {/* Stats */}
                           <div className="grid grid-cols-3 gap-4 mb-6">
                             {Object.entries(body.stats).map(([key, value]) => (
@@ -313,7 +296,6 @@ const CounsellingPage: React.FC = () => {
                               </div>
                             ))}
                           </div>
-
                           {/* Features */}
                           <div className="grid grid-cols-2 gap-2">
                             {body.features.map((feature, idx) => (
@@ -335,7 +317,6 @@ const CounsellingPage: React.FC = () => {
                     );
                   })}
                 </motion.div>
-
                 {/* Info Section */}
                 <motion.div
                   className={`backdrop-blur-sm rounded-2xl p-8 border ${
@@ -380,12 +361,10 @@ const CounsellingPage: React.FC = () => {
                 </motion.div>
               </div>
             </motion.section>
-
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
-
 export default CounsellingPage;

@@ -2,8 +2,6 @@
 // This page is rendered on the server for better SEO and performance
 
 import { Metadata } from 'next';
-import { GraduationCap, MapPin, Shield } from 'lucide-react';
-import { Star, Zap, Target } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import AboutClient from '@/components/about/AboutClient';
 
@@ -22,6 +20,7 @@ export const metadata: Metadata = {
 // This is a Server Component - data preparation happens on the server
 export default function AboutPage() {
   // Prepare data on the server (could fetch from database/API in the future)
+  // Note: Icon components moved to Client Component to avoid React 19 serialization issues
   const teamMembers = [
     {
       name: 'Dr. Anonymous',
@@ -33,35 +32,35 @@ export default function AboutPage() {
   ];
 
   const stats = [
-    { number: '2,400+', label: 'Colleges Covered', icon: GraduationCap },
-    { number: '28', label: 'States Covered', icon: MapPin },
-    { number: 'Growing', label: 'Database', icon: Shield },
-    { number: '24/7', label: 'Support Available', icon: Shield }
+    { number: '2,400+', label: 'Colleges Covered', iconName: 'GraduationCap' },
+    { number: '28', label: 'States Covered', iconName: 'MapPin' },
+    { number: 'Growing', label: 'Database', iconName: 'Shield' },
+    { number: '24/7', label: 'Support Available', iconName: 'Shield' }
   ];
 
   const values = [
     {
       title: 'Excellence',
       description: 'We strive for excellence in everything we do, from data accuracy to user experience.',
-      icon: Star,
+      iconName: 'Star',
       color: 'text-yellow-400'
     },
     {
       title: 'Innovation',
       description: 'Continuously innovating with AI-powered recommendations and cutting-edge technology.',
-      icon: Zap,
+      iconName: 'Zap',
       color: 'text-blue-400'
     },
     {
       title: 'Integrity',
       description: 'Maintaining the highest standards of integrity and transparency in all our services.',
-      icon: Shield,
+      iconName: 'Shield',
       color: 'text-green-400'
     },
     {
       title: 'Empowerment',
       description: 'Empowering students with knowledge and tools to make informed decisions.',
-      icon: Target,
+      iconName: 'Target',
       color: 'text-purple-400'
     }
   ];
